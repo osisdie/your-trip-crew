@@ -1,0 +1,33 @@
+# Standalone CI compose — no dev bind-mounts, no host port mappings.
+# Usage: docker compose -f docker-compose.ci.yml up -d --build
+services:
+  trip-postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tripuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trippass}
+      POSTGRES_DB: ${POSTGRES_DB:-tripdb}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tripuser}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  trip-redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  trip-backend:
+    build:
+      context: ./backend
+    env_file: .env
+    depends_on:
+      trip-postgres:
+        condition: service_healthy
+      trip-redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
