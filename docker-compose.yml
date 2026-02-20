@@ -1,0 +1,165 @@
+services:
+  # ─── Data Stores ──────────────────────────────────
+  trip-postgres:
+    image: pgvector/pgvector:pg17
+    container_name: trip-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tripuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trippass}
+      POSTGRES_DB: ${POSTGRES_DB:-tripdb}
+    ports:
+      - "5632:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_pgvector.sql:/docker-entrypoint-initdb.d/init_pgvector.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tripuser}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  trip-neo4j:
+    image: neo4j:5-community
+    container_name: trip-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-tripneo4j}
+    ports:
+      - "7674:7474"
+      - "7887:7687"
+    volumes:
+      - neo4jdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+  trip-redis:
+    image: redis:7-alpine
+    container_name: trip-redis
+    ports:
+      - "6579:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ──────────────────────────────────
+  trip-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trip-backend
+    ports:
+      - "8200:8000"
+    env_file: .env
+    depends_on:
+      trip-postgres:
+        condition: service_healthy
+      trip-redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ─── Frontend (dev) ──────────────────────────────
+  trip-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trip-frontend
+    ports:
+      - "5373:5173"
+    env_file: .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+  # ─── MCP Servers ──────────────────────────────────
+  trip-mcp-japan:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: trip-mcp-japan
+    ports:
+      - "8201:8001"
+    env_file: .env
+    command: python -m mcp_servers.japan_travel.server
+    volumes:
+      - ./agents:/app
+
+  trip-mcp-taiwan:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: trip-mcp-taiwan
+    ports:
+      - "8202:8002"
+    env_file: .env
+    command: python -m mcp_servers.taiwan_travel.server
+    volumes:
+      - ./agents:/app
+
+  trip-mcp-flights:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: trip-mcp-flights
+    ports:
+      - "8203:8003"
+    env_file: .env
+    command: python -m mcp_servers.flights.server
+    volumes:
+      - ./agents:/app
+
+  trip-mcp-utilities:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: trip-mcp-utilities
+    ports:
+      - "8204:8004"
+    env_file: .env
+    command: python -m mcp_servers.utilities.server
+    volumes:
+      - ./agents:/app
+
+  trip-mcp-knowledge:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: trip-mcp-knowledge
+    ports:
+      - "8205:8005"
+    env_file: .env
+    depends_on:
+      trip-postgres:
+        condition: service_healthy
+      trip-neo4j:
+        condition: service_healthy
+    command: python -m mcp_servers.knowledge.server
+    volumes:
+      - ./agents:/app
+
+  # ─── Nginx (prod) ────────────────────────────────
+  trip-nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: trip-nginx
+    ports:
+      - "280:80"
+    depends_on:
+      - trip-backend
+      - trip-frontend
+    profiles:
+      - prod
+
+volumes:
+  pgdata:
+  neo4jdata:
+  redisdata:
