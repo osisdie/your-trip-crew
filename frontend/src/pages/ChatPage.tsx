@@ -11,7 +11,6 @@ export function ChatPage() {
     sessions,
     currentSession,
     messages,
-    isLoading,
     isSending,
     fetchSessions,
     createSession,
@@ -38,12 +37,10 @@ export function ChatPage() {
 
   const handleSend = async (content: string) => {
     if (!currentSession) {
-      const session = await createSession("New Trip Plan");
+      await createSession("New Trip Plan");
       // After creating, send the message
-      await sendMessage(content);
-    } else {
-      await sendMessage(content);
     }
+    await sendMessage(content);
   };
 
   const prompts = [

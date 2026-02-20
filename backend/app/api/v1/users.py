@@ -40,7 +40,9 @@ async def get_my_usage(
 ):
     today = date.today()
     count = await get_usage_count(db, user.id, today)
-    limit = settings.daily_limit_premium if user.tier == UserTier.premium else settings.daily_limit_free
+    limit = (
+        settings.daily_limit_premium if user.tier == UserTier.premium else settings.daily_limit_free
+    )
     return UsageRead(
         date=today.isoformat(),
         query_count=count,

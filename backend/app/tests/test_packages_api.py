@@ -12,7 +12,10 @@ class TestListPackages:
     def test_package_shape(self, client):
         resp = client.get("/api/v1/packages")
         pkg = resp.json()[0]
-        for field in ("id", "title", "slug", "destination", "category", "summary", "price_usd", "duration_days"):
+        for field in (
+            "id", "title", "slug", "destination", "category",
+            "summary", "price_usd", "duration_days",
+        ):
             assert field in pkg, f"Missing field: {field}"
 
     def test_filter_by_destination_japan(self, client):

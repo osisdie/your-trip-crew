@@ -15,9 +15,12 @@ lint:backend:
 lint:frontend:
   stage: lint
   image: node:20-alpine
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest --activate
+    - cd frontend && pnpm install --frozen-lockfile
   script:
-    - cd frontend && npm ci
-    - cd frontend && npx tsc --noEmit
+    - pnpm exec tsc --noEmit
 
 # ─── Stage 2: Build Docker images (~2min) ─────────
 

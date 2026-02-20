@@ -17,7 +17,7 @@ export function ItineraryPage() {
     if (!id) return;
     itineraryApi
       .get(id)
-      .then(({ data }) => setItinerary(data))
+      .then((res) => setItinerary(res.data))
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [id]);

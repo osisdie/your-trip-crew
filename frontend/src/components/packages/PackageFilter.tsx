@@ -24,7 +24,7 @@ export function PackageFilter({
         className="input"
       >
         <option value="">{t("packages.allDestinations")}</option>
-        {DESTINATIONS.map((d) => (
+        {DESTINATIONS.map((d: string) => (
           <option key={d} value={d}>{d}</option>
         ))}
       </select>
@@ -35,7 +35,7 @@ export function PackageFilter({
         className="input"
       >
         <option value="">{t("packages.allCategories")}</option>
-        {CATEGORIES.map((c) => (
+        {CATEGORIES.map((c: string) => (
           <option key={c} value={c}>{c}</option>
         ))}
       </select>

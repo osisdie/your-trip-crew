@@ -8,7 +8,7 @@ export function UsageBadge() {
   const t = useT();
 
   useEffect(() => {
-    userApi.getUsage().then(({ data }) => setUsage(data)).catch(() => {});
+    userApi.getUsage().then((res) => setUsage(res.data)).catch(() => {});
   }, []);
 
   if (!usage) return null;

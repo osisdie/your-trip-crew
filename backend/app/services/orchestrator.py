@@ -28,7 +28,8 @@ You are a professional travel planning assistant specializing in Japan and Taiwa
 Your job is to help users plan complete travel itineraries.
 
 RULES:
-1. Respond in the SAME LANGUAGE as the user. If the user writes in Chinese, reply in Traditional Chinese (繁體中文), NOT Simplified Chinese.
+1. Respond in the SAME LANGUAGE as the user. If the user writes in Chinese, reply in
+   Traditional Chinese (繁體中文), NOT Simplified Chinese.
 2. If critical info is missing (destination, dates/duration, number of travelers), \
 ask clarifying questions. List what you still need.
 3. If you have enough info, create a detailed day-by-day itinerary with:
@@ -99,15 +100,19 @@ def _extract_slots_from_llm(content: str) -> tuple[str, dict | None]:
 # ---------------------------------------------------------------------------
 # Rule-based slot extraction from user message (fallback for weak models)
 # ---------------------------------------------------------------------------
+_JAPAN_RE = r"日本|japan|東京|tokyo|大阪|osaka|京都|kyoto|北海道|hokkaido|沖繩|okinawa"
+_TAIWAN_RE = r"台灣|台湾|taiwan|台北|taipei|高雄|kaohsiung|台中|taichung|花蓮|hualien"
 _DEST_PATTERNS = [
-    (re.compile(r"日本|japan|東京|tokyo|大阪|osaka|京都|kyoto|北海道|hokkaido|沖繩|okinawa", re.I), "japan"),
-    (re.compile(r"台灣|台湾|taiwan|台北|taipei|高雄|kaohsiung|台中|taichung|花蓮|hualien", re.I), "taiwan"),
+    (re.compile(_JAPAN_RE, re.I), "japan"),
+    (re.compile(_TAIWAN_RE, re.I), "taiwan"),
 ]
 _DURATION_RE = re.compile(r"(\d+)\s*(?:天|日|days?|nights?)", re.I)
 _TRAVELERS_RE = re.compile(r"(\d+)\s*(?:人|個人|位|adults?|people|persons?|pax)", re.I)
 _BUDGET_RE = re.compile(r"(?:預算|budget)[^\d]*(\d[\d,]*)\s*(?:美[金元]|usd|\$)?", re.I)
 _BUDGET_RE2 = re.compile(r"\$\s*(\d[\d,]*)", re.I)
-_CHILDREN_RE = re.compile(r"(?:小孩|孩子|兒童|children?|kids?)\D*(\d+)\s*(?:歲|岁|years?\s*old|yo)", re.I)
+_CHILDREN_RE = re.compile(
+    r"(?:小孩|孩子|兒童|children?|kids?)\D*(\d+)\s*(?:歲|岁|years?\s*old|yo)", re.I
+)
 _DATE_RE = re.compile(r"(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})")
 
 

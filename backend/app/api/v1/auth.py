@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import UnauthorizedError
-
 from app.api.deps import get_db
 from app.config import settings
+from app.core.exceptions import UnauthorizedError
 from app.schemas.auth import TokenRefreshRequest, TokenResponse
 from app.services.auth_service import (
     get_google_auth_url,

@@ -2,12 +2,10 @@ import json
 import uuid
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_token
 from app.database import async_session
 from app.models.chat import MessageRole
-from app.models.user import User
 from app.services import chat_service
 from app.services.orchestrator import process_user_message
 

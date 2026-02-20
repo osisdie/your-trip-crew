@@ -135,7 +135,7 @@ function getCrewState(
 
 /* ─── CrewCard ───────────────────────────────────────────────────────────── */
 function CrewCard({ crew, visualState }: { crew: Crew; visualState: CrewVisualState }) {
-  const c = colorMap[crew.color];
+  const c = (colorMap[crew.color] ?? colorMap.emerald)!;
 
   const borderClass =
     visualState === "active"  ? `${c.border} ring-2 ${c.ring} animate-pulse` :
@@ -223,7 +223,7 @@ export function DevAgentFlowPage() {
 
   // Fetch available sessions on mount
   useEffect(() => {
-    chatApi.listSessions().then(({ data }) => setSessions(data)).catch(() => {});
+    chatApi.listSessions().then((res) => setSessions(res.data)).catch(() => {});
   }, []);
 
   // Auto-scroll timeline
@@ -271,14 +271,14 @@ export function DevAgentFlowPage() {
         <div className="space-y-3">
           {/* Step 1 */}
           <CrewCard
-            crew={CREWS[0]}
+            crew={CREWS[0]!}
             visualState={getCrewState("intent", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
           />
           <div className="text-center text-gray-600">↓</div>
 
           {/* Step 2 - Router */}
           <CrewCard
-            crew={CREWS[1]}
+            crew={CREWS[1]!}
             visualState={getCrewState("router", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
           />
           <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
@@ -296,11 +296,11 @@ export function DevAgentFlowPage() {
           {/* Step 3 - Destination crews (side by side) */}
           <div className="grid gap-3 md:grid-cols-2">
             <CrewCard
-              crew={CREWS[2]}
+              crew={CREWS[2]!}
               visualState={getCrewState("japan", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
             />
             <CrewCard
-              crew={CREWS[3]}
+              crew={CREWS[3]!}
               visualState={getCrewState("taiwan", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
             />
           </div>
@@ -308,17 +308,17 @@ export function DevAgentFlowPage() {
 
           {/* Steps 4-6 */}
           <CrewCard
-            crew={CREWS[4]}
+            crew={CREWS[4]!}
             visualState={getCrewState("booking", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
           />
           <div className="text-center text-gray-600">↓</div>
           <CrewCard
-            crew={CREWS[5]}
+            crew={CREWS[5]!}
             visualState={getCrewState("advisory", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
           />
           <div className="text-center text-gray-600">↓</div>
           <CrewCard
-            crew={CREWS[6]}
+            crew={CREWS[6]!}
             visualState={getCrewState("synthesis", flow.activeCrews, flow.doneCrews, flow.errorCrews)}
           />
         </div>

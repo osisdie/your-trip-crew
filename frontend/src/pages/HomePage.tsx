@@ -13,7 +13,7 @@ export function HomePage() {
   const [featured, setFeatured] = useState<TravelPackage[]>([]);
 
   useEffect(() => {
-    packageApi.list({ limit: 6 }).then(({ data }) => setFeatured(data)).catch(() => {});
+    packageApi.list({ limit: 6 }).then((res) => setFeatured(res.data)).catch(() => {});
   }, [locale]);
 
   return (

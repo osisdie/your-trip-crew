@@ -22,7 +22,7 @@ export function PackagesPage() {
 
     packageApi
       .list(params)
-      .then(({ data }) => setPackages(data))
+      .then((res) => setPackages(res.data))
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [destination, category, locale]);

@@ -1,4 +1,3 @@
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +12,11 @@ _DAY_I18N_FIELDS = ("title", "description")
 _TAG_I18N_FIELDS = ("tag",)
 
 
-def _apply_locale(obj: TravelPackage | PackageDay | PackageTag, locale: str | None, fields: tuple[str, ...]) -> None:
+def _apply_locale(
+    obj: TravelPackage | PackageDay | PackageTag,
+    locale: str | None,
+    fields: tuple[str, ...],
+) -> None:
     """Overlay translated values onto a model instance (mutates in-place).
 
     If *locale* is None or "en", no-op (English is the base language).

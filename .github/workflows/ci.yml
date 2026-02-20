@@ -21,12 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
+          cache: "pnpm"
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
         working-directory: frontend
-      - run: npx tsc --noEmit
+      - run: pnpm exec tsc --noEmit
         working-directory: frontend
 
   # ─── Stage 2: Build Docker images (~2min) ─────────

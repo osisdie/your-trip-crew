@@ -8,7 +8,6 @@ import os
 import httpx
 import pytest
 
-
 BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:8000")
 
 

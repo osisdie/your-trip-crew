@@ -12,32 +12,33 @@ A full-stack AI travel planning platform powered by **multi-agent orchestration*
 
 ## Architecture Overview
 
-```
-                          Browser
-                            │
-                       ┌─────────┐
-                       │ Frontend │  React 19 · TypeScript · Tailwind · Zustand
-                       └────┬────┘
-                            │ REST / WebSocket / SSE
-                       ┌────┴────┐
-                       │ Backend  │  FastAPI · SQLModel · JWT · Redis rate-limit
-                       └────┬────┘
-                      ╱     │     ╲
-              ┌────────┐ ┌───────┐ ┌────────┐
-              │Postgres│ │ Redis │ │ Neo4j  │
-              │pgvector│ │       │ │Graphiti│
-              └────────┘ └───────┘ └────────┘
-                      ╲     │     ╱
-                       ┌────┴────┐
-                       │  Agent  │  CrewAI Flow · 6 Crews · 14 Agents
-                       │  Layer  │
-                       └────┬────┘
-                      ╱   ╱   ╲   ╲
-              ┌──────┐┌──────┐┌──────┐┌──────┐┌──────┐
-              │Japan ││Taiwan││Flight││Utils ││Knowl.│
-              │ MCP  ││ MCP  ││ MCP  ││ MCP  ││ MCP  │
-              └──────┘└──────┘└──────┘└──────┘└──────┘
-              5 tools  4 tools 2 tools 3 tools 3 tools
+```mermaid
+graph TD
+    Browser["🌐 Browser"]
+    Frontend["Frontend<br/><small>React 19 · TypeScript · Tailwind · Zustand</small>"]
+    Backend["Backend<br/><small>FastAPI · SQLModel · JWT · Redis rate-limit</small>"]
+    Postgres["PostgreSQL<br/>+ pgvector"]
+    Redis["Redis"]
+    Neo4j["Neo4j<br/>Graphiti"]
+    Agents["Agent Layer<br/><small>CrewAI Flow · 6 Crews · 14 Agents</small>"]
+    MCP1["Japan MCP<br/><small>5 tools</small>"]
+    MCP2["Taiwan MCP<br/><small>4 tools</small>"]
+    MCP3["Flights MCP<br/><small>2 tools</small>"]
+    MCP4["Utilities MCP<br/><small>3 tools</small>"]
+    MCP5["Knowledge MCP<br/><small>3 tools</small>"]
+
+    Browser --> Frontend
+    Frontend -- "REST / WebSocket / SSE" --> Backend
+    Backend --> Postgres & Redis & Neo4j
+    Postgres & Redis & Neo4j --> Agents
+    Agents --> MCP1 & MCP2 & MCP3 & MCP4 & MCP5
+
+    style Frontend fill:#3b82f6,color:#fff
+    style Backend fill:#10b981,color:#fff
+    style Agents fill:#f59e0b,color:#fff
+    style Postgres fill:#6366f1,color:#fff
+    style Redis fill:#ef4444,color:#fff
+    style Neo4j fill:#6366f1,color:#fff
 ```
 
 ## Agent Orchestration — Deep Dive
@@ -48,24 +49,24 @@ The orchestration pipeline transforms a free-form user message like _"I want to 
 
 Every user message passes through a **two-layer extraction pipeline** that progressively fills an intent slot object:
 
-```
-User: "我想去日本玩5天，2個大人加1個5歲小孩"
-                    │
-    ┌───────────────┼───────────────┐
-    │               │               │
-    ▼               ▼               ▼
- Regex Layer    LLM Layer      Merge & Persist
- (instant)      (async)
-    │               │               │
-    ▼               ▼               ▼
- destination:    budget_usd:     ┌──────────────────────┐
-  "japan"         null           │  Session Intent Slots │
- duration_days:  trip_style:     │  (JSONB in Postgres)  │
-  5               "family"      └──────────────────────┘
- num_travelers:  preferences:
-  3               ["kid-friendly"]
- children_ages:
-  [5]
+```mermaid
+graph LR
+    User["💬 User Message<br/><small>我想去日本玩5天<br/>2個大人加1個5歲小孩</small>"]
+
+    subgraph extraction ["Two-Layer Extraction"]
+        Regex["⚡ Regex Layer<br/><small>(instant, zero-cost)</small><br/><br/>destination: japan<br/>duration_days: 5<br/>num_travelers: 3<br/>children_ages: 5 "]
+        LLM["🤖 LLM Layer<br/><small>(async)</small><br/><br/>budget_usd: null<br/>trip_style: family<br/>preferences:<br/>kid-friendly"]
+    end
+
+    Slots[("🗃️ Session Intent Slots<br/><small>JSONB in Postgres</small>")]
+
+    User --> Regex & LLM
+    Regex --> Slots
+    LLM --> Slots
+
+    style Regex fill:#fbbf24,color:#000
+    style LLM fill:#818cf8,color:#fff
+    style Slots fill:#34d399,color:#000
 ```
 
 **Layer 1 — Rule-Based Regex** (instant, zero-cost):
@@ -83,11 +84,19 @@ The LLM system prompt instructs the model to append a hidden `SLOTS_JSON: {...}`
 **Multi-Turn Accumulation**:
 Slots persist across conversation turns in `ChatSession.intent_slots` (JSONB). Each new message merges into existing slots — users can refine incrementally:
 
-```
-Turn 1: "I want to go to Japan"        → { destination: "japan" }
-Turn 2: "5 days, 2 people"             → { destination: "japan", duration_days: 5, num_travelers: 2 }
-Turn 3: "budget around $3000"          → { ..., budget_usd: 3000 }
-                                          ✓ slots_complete → trigger planning
+```mermaid
+graph LR
+    T1["Turn 1<br/><b>I want to go to Japan</b>"]
+    S1["{destination: japan}"]
+    T2["Turn 2<br/><b>5 days, 2 people</b>"]
+    S2["{destination: japan<br/>duration_days: 5<br/>num_travelers: 2}"]
+    T3["Turn 3<br/><b>budget around $3000</b>"]
+    S3["{..., budget_usd: 3000}"]
+    Done{{"✅ slots_complete<br/>→ trigger planning"}}
+
+    T1 --> S1 --> T2 --> S2 --> T3 --> S3 --> Done
+
+    style Done fill:#22c55e,color:#fff
 ```
 
 **Completeness Check**: Planning triggers only when the minimum required slots are filled:
@@ -101,58 +110,68 @@ If incomplete, the system asks targeted clarifying questions for exactly what's 
 
 Once slots are complete, a router selects the appropriate agent crew:
 
-```
-                    ┌─────────────────┐
-                    │  slots_complete? │
-                    └────────┬────────┘
-                       no ╱     ╲ yes
-                         ╱       ╲
-              ┌──────────┐    ┌──────────────┐
-              │ Ask user │    │   Router     │
-              │ missing  │    │ destination? │
-              │ fields   │    └──────┬───────┘
-              └──────────┘      "japan" │ "taiwan"
-                           ┌──────────┼──────────┐
-                           ▼                     ▼
-                    ┌──────────┐          ┌──────────┐
-                    │Japan Crew│          │Taiwan Crew│
-                    │ 5 agents │          │ 4 agents  │
-                    └──────────┘          └──────────┘
+```mermaid
+graph TD
+    Check{"slots_complete?"}
+    Ask["🔄 Ask user<br/>missing fields"]
+    Router{"🧭 Router<br/>destination?"}
+    Japan["🇯🇵 Japan Crew<br/><small>5 agents</small>"]
+    Taiwan["🇹🇼 Taiwan Crew<br/><small>4 agents</small>"]
+
+    Check -- "No" --> Ask
+    Ask -.-> Check
+    Check -- "Yes" --> Router
+    Router -- "japan" --> Japan
+    Router -- "taiwan" --> Taiwan
+
+    style Check fill:#f59e0b,color:#000
+    style Japan fill:#ef4444,color:#fff
+    style Taiwan fill:#3b82f6,color:#fff
 ```
 
 ### 3. Crew Execution Pipeline (DAG Flow)
 
 After routing, the system executes a **sequential pipeline of 4 crew stages**. Each crew runs its agents in parallel internally, and the output feeds into the next crew:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        CrewAI Flow (DAG)                                │
-│                                                                         │
-│  ┌──────────┐     ┌──────────────────────┐     ┌────────────────────┐  │
-│  │  Intent   │────▶│  Destination Crew    │────▶│   Booking Crew     │  │
-│  │  Crew     │     │                      │     │                    │  │
-│  │           │     │  Runs in parallel:   │     │  ● Flight Agent    │  │
-│  │  ● Intent │     │  ● Itinerary Agent   │     │  ● eSIM Agent      │  │
-│  │    Parser │     │  ● Hotel Agent       │     │                    │  │
-│  │           │     │  ● Train Agent       │     └─────────┬──────────┘  │
-│  └──────────┘     │  ● Festival Agent    │               │             │
-│                    │  ● Ski Agent (cond.) │               ▼             │
-│                    └──────────────────────┘     ┌────────────────────┐  │
-│                                                 │   Advisory Crew    │  │
-│                                                 │                    │  │
-│                                                 │  ● Currency Agent  │  │
-│                                                 │  ● Family Advisor  │  │
-│                                                 │    (conditional)   │  │
-│                                                 └─────────┬──────────┘  │
-│                                                           │             │
-│                                                           ▼             │
-│                                                 ┌────────────────────┐  │
-│                                                 │  Synthesis Crew    │  │
-│                                                 │                    │  │
-│                                                 │  ● Itinerary Writer│  │
-│                                                 │    (creative LLM)  │  │
-│                                                 └────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph flow ["CrewAI Flow (DAG)"]
+        direction TB
+
+        subgraph C1 ["1️⃣ Intent Crew"]
+            A1["Intent Parser"]
+        end
+
+        subgraph C2 ["2️⃣ Destination Crew <small>(parallel)</small>"]
+            A2["Itinerary Agent"]
+            A3["Hotel Agent"]
+            A4["Train Agent"]
+            A5["Festival Agent"]
+            A6["Ski Agent ❄️<br/><small>conditional</small>"]
+        end
+
+        subgraph C3 ["3️⃣ Booking Crew"]
+            A7["Flight Agent ✈️"]
+            A8["eSIM Agent 📱"]
+        end
+
+        subgraph C4 ["4️⃣ Advisory Crew"]
+            A9["Currency Agent 💱"]
+            A10["Family Advisor 👨‍👩‍👧<br/><small>conditional</small>"]
+        end
+
+        subgraph C5 ["5️⃣ Synthesis Crew"]
+            A11["Itinerary Writer ✍️<br/><small>creative LLM</small>"]
+        end
+
+        C1 --> C2 --> C3 --> C4 --> C5
+    end
+
+    style C1 fill:#6366f1,color:#fff
+    style C2 fill:#ef4444,color:#fff
+    style C3 fill:#f59e0b,color:#000
+    style C4 fill:#10b981,color:#fff
+    style C5 fill:#ec4899,color:#fff
 ```
 
 #### All 6 Crews and 14 Agents
@@ -391,8 +410,17 @@ make clean           # Stop + remove volumes
 
 Both GitHub Actions and GitLab CI run the same 3-stage pipeline:
 
-```
-lint (ruff + tsc) → build (3 Docker images) → test (22 E2E via docker compose)
+```mermaid
+graph LR
+    Lint["🔍 Lint<br/><small>ruff + tsc</small>"]
+    Build["🔨 Build<br/><small>3 Docker images</small>"]
+    Test["🧪 Test<br/><small>22 E2E via<br/>Docker Compose</small>"]
+
+    Lint --> Build --> Test
+
+    style Lint fill:#fbbf24,color:#000
+    style Build fill:#3b82f6,color:#fff
+    style Test fill:#22c55e,color:#fff
 ```
 
 ### Environment Variables

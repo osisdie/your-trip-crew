@@ -12,8 +12,8 @@ export function ProfilePage() {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
 
   useEffect(() => {
-    userApi.getUsage().then(({ data }) => setUsage(data)).catch(() => {});
-    itineraryApi.list().then(({ data }) => setItineraries(data)).catch(() => {});
+    userApi.getUsage().then((res) => setUsage(res.data)).catch(() => {});
+    itineraryApi.list().then((res) => setItineraries(res.data)).catch(() => {});
   }, []);
 
   if (!user) return null;

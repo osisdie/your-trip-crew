@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_optional_user
-from app.models.user import User
-from app.schemas.package import PackageDetailRead, PackageFilterParams, PackageListRead
+from app.api.deps import get_db
+from app.schemas.package import PackageDetailRead, PackageListRead
 from app.services import package_service
 from app.services.embedding_service import generate_embedding, semantic_search
 

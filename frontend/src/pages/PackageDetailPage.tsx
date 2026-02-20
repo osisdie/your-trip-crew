@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { packageApi } from "../lib/api";
-import type { PackageDetail } from "../lib/types";
+import type { PackageDetail, PackageTag, PackageDay } from "../lib/types";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { useT, useI18nStore } from "../i18n";
 
@@ -17,7 +17,7 @@ export function PackageDetailPage() {
     setIsLoading(true);
     packageApi
       .getBySlug(slug)
-      .then(({ data }) => setPkg(data))
+      .then((res) => setPkg(res.data))
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [slug, locale]);
@@ -61,7 +61,7 @@ export function PackageDetailPage() {
             <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
               {pkg.category}
             </span>
-            {pkg.tags.map((tag) => (
+            {pkg.tags.map((tag: PackageTag) => (
               <span
                 key={tag.id}
                 className="rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-500"
@@ -90,7 +90,7 @@ export function PackageDetailPage() {
             <div className="mt-6">
               <h3 className="font-semibold text-gray-900">{t("pkgDetail.highlights")}</h3>
               <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-600">
-                {pkg.highlights.map((h, i) => (
+                {pkg.highlights.map((h: string, i: number) => (
                   <li key={i}>{h}</li>
                 ))}
               </ul>
@@ -108,8 +108,8 @@ export function PackageDetailPage() {
             <h2 className="text-2xl font-bold text-gray-900">{t("pkgDetail.dayByDay")}</h2>
             <div className="mt-6 space-y-6">
               {pkg.days
-                .sort((a, b) => a.day_number - b.day_number)
-                .map((day) => (
+                .sort((a: PackageDay, b: PackageDay) => a.day_number - b.day_number)
+                .map((day: PackageDay) => (
                   <div key={day.id} className="card p-6">
                     <h3 className="font-semibold text-gray-900">
                       {t("pkgDetail.day")} {day.day_number}: {day.title}
@@ -117,7 +117,7 @@ export function PackageDetailPage() {
                     <p className="mt-2 text-sm text-gray-600">{day.description}</p>
                     {day.activities && day.activities.length > 0 && (
                       <ul className="mt-3 space-y-2">
-                        {day.activities.map((act, i) => (
+                        {day.activities.map((act: Record<string, unknown>, i: number) => (
                           <li
                             key={i}
                             className="flex items-start gap-2 text-sm text-gray-500"
