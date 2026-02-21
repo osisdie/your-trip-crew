@@ -434,9 +434,9 @@ Both GitHub Actions and GitLab CI run the same 3-stage pipeline:
 
 ```mermaid
 graph LR
-    Lint["🔍 Lint<br/><small>ruff + tsc</small>"]
-    Build["🔨 Build<br/><small>3 Docker images</small>"]
-    Test["🧪 Test<br/><small>22 E2E via<br/>Docker Compose</small>"]
+    Lint["🔍 Lint<br/>ruff + tsc"]
+    Build["🔨 Build<br/>3 Docker images"]
+    Test["🧪 Test<br/>22 E2E via Docker Compose"]
 
     Lint --> Build --> Test
 
