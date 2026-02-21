@@ -18,9 +18,7 @@ def create_family_advice_task(agent, slots: dict) -> Task:
 
 
 def create_currency_task(agent, slots: dict) -> Task:
-    dest_currency = {"japan": "JPY", "taiwan": "TWD"}.get(
-        (slots.get("destination") or "japan").lower(), "JPY"
-    )
+    dest_currency = {"japan": "JPY", "taiwan": "TWD"}.get((slots.get("destination") or "japan").lower(), "JPY")
     return Task(
         description=(
             f"Provide currency information for traveling to {slots.get('destination', 'Japan')}.\n\n"

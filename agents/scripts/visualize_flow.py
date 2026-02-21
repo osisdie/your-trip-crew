@@ -245,6 +245,7 @@ FLOW_HTML = """<!DOCTYPE html>
 
 if __name__ == "__main__":
     import pathlib
+
     out = pathlib.Path(__file__).resolve().parent.parent / "flow_visualization.html"
     out.write_text(FLOW_HTML)
     print(f"Generated: {out}")

@@ -13,6 +13,7 @@ from orchestrator.crews.advisory_crew import create_advisory_crew
 from orchestrator.crews.booking_crew import create_booking_crew
 from orchestrator.crews.intent_crew import create_intent_crew
 from orchestrator.crews.japan_crew import create_japan_crew
+from orchestrator.crews.link_validator_crew import validate_links
 from orchestrator.crews.synthesis_crew import create_synthesis_crew
 from orchestrator.crews.taiwan_crew import create_taiwan_crew
 from orchestrator.state import IntentSlots, TripPlanningState
@@ -37,7 +38,7 @@ class TripPlanningFlow(Flow[TripPlanningState]):
             result_text = str(result)
             # Try to extract JSON from the result
             if "{" in result_text:
-                json_str = result_text[result_text.index("{"):result_text.rindex("}") + 1]
+                json_str = result_text[result_text.index("{") : result_text.rindex("}") + 1]
                 parsed = json.loads(json_str)
 
                 # Update intent slots
@@ -82,7 +83,9 @@ class TripPlanningFlow(Flow[TripPlanningState]):
                 questions.append("When are you planning to travel, and for how many days?")
             if "number of travelers" in missing:
                 questions.append("How many people will be traveling?")
-            self.state.final_itinerary = "\n".join(questions) if questions else "Could you tell me more about your trip plans?"
+            self.state.final_itinerary = (
+                "\n".join(questions) if questions else "Could you tell me more about your trip plans?"
+            )
 
     @listen("plan_japan")
     def plan_japan_trip(self):
@@ -139,6 +142,13 @@ class TripPlanningFlow(Flow[TripPlanningState]):
         crew = create_synthesis_crew(state_summary)
         result = crew.kickoff()
         self.state.final_itinerary = str(result)
+
+    @listen(synthesize_final_itinerary)
+    def validate_links_step(self):
+        """Step 6: Validate all URLs in the final itinerary."""
+        logger.info("Validating links in final itinerary")
+        if self.state.final_itinerary:
+            self.state.final_itinerary = validate_links(self.state.final_itinerary)
 
 
 async def run_trip_planning(

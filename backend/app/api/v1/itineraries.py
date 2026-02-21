@@ -19,11 +19,7 @@ async def list_itineraries(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = (
-        select(Itinerary)
-        .where(Itinerary.user_id == user.id)
-        .order_by(Itinerary.created_at.desc())
-    )
+    stmt = select(Itinerary).where(Itinerary.user_id == user.id).order_by(Itinerary.created_at.desc())
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
@@ -37,9 +33,7 @@ async def get_itinerary(
     stmt = (
         select(Itinerary)
         .where(Itinerary.id == itinerary_id, Itinerary.user_id == user.id)
-        .options(
-            selectinload(Itinerary.days).selectinload(ItineraryDay.items)
-        )
+        .options(selectinload(Itinerary.days).selectinload(ItineraryDay.items))
     )
     result = await db.execute(stmt)
     itinerary = result.scalar_one_or_none()
@@ -55,9 +49,7 @@ async def update_itinerary(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Itinerary).where(
-        Itinerary.id == itinerary_id, Itinerary.user_id == user.id
-    )
+    stmt = select(Itinerary).where(Itinerary.id == itinerary_id, Itinerary.user_id == user.id)
     result = await db.execute(stmt)
     itinerary = result.scalar_one_or_none()
     if not itinerary:
@@ -79,9 +71,7 @@ async def delete_itinerary(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Itinerary).where(
-        Itinerary.id == itinerary_id, Itinerary.user_id == user.id
-    )
+    stmt = select(Itinerary).where(Itinerary.id == itinerary_id, Itinerary.user_id == user.id)
     result = await db.execute(stmt)
     itinerary = result.scalar_one_or_none()
     if not itinerary:

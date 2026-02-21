@@ -17,11 +17,36 @@ def semantic_search_packages(
     Currently returns mock results.
     """
     mock_results = [
-        {"title": "Tokyo Explorer: 5-Day Urban Adventure", "destination": "Japan", "similarity": 0.92, "slug": "tokyo-explorer-5day"},
-        {"title": "Kyoto & Osaka Cultural Journey", "destination": "Japan", "similarity": 0.88, "slug": "kyoto-osaka-cultural-7day"},
-        {"title": "Taipei City Break: 4 Days", "destination": "Taiwan", "similarity": 0.85, "slug": "taipei-city-break-4day"},
-        {"title": "Hokkaido Winter Ski Paradise", "destination": "Japan", "similarity": 0.82, "slug": "hokkaido-ski-6day"},
-        {"title": "Taiwan Night Market Food Trail", "destination": "Taiwan", "similarity": 0.80, "slug": "taiwan-night-market-food-5day"},
+        {
+            "title": "Tokyo Explorer: 5-Day Urban Adventure",
+            "destination": "Japan",
+            "similarity": 0.92,
+            "slug": "tokyo-explorer-5day",
+        },
+        {
+            "title": "Kyoto & Osaka Cultural Journey",
+            "destination": "Japan",
+            "similarity": 0.88,
+            "slug": "kyoto-osaka-cultural-7day",
+        },
+        {
+            "title": "Taipei City Break: 4 Days",
+            "destination": "Taiwan",
+            "similarity": 0.85,
+            "slug": "taipei-city-break-4day",
+        },
+        {
+            "title": "Hokkaido Winter Ski Paradise",
+            "destination": "Japan",
+            "similarity": 0.82,
+            "slug": "hokkaido-ski-6day",
+        },
+        {
+            "title": "Taiwan Night Market Food Trail",
+            "destination": "Taiwan",
+            "similarity": 0.80,
+            "slug": "taiwan-night-market-food-5day",
+        },
     ]
 
     results = mock_results
@@ -46,8 +71,16 @@ def query_knowledge_graph(query: str, group_id: str | None = None) -> dict:
         "query": query,
         "group_id": group_id,
         "entities": [
-            {"type": "destination", "name": "Tokyo", "properties": {"country": "Japan", "best_season": "spring"}},
-            {"type": "activity", "name": "Cherry Blossom Viewing", "properties": {"season": "spring", "cost": "free"}},
+            {
+                "type": "destination",
+                "name": "Tokyo",
+                "properties": {"country": "Japan", "best_season": "spring"},
+            },
+            {
+                "type": "activity",
+                "name": "Cherry Blossom Viewing",
+                "properties": {"season": "spring", "cost": "free"},
+            },
         ],
         "relationships": [
             {"from": "Tokyo", "to": "Cherry Blossom Viewing", "type": "HAS_ACTIVITY"},

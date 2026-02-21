@@ -46,21 +46,65 @@ def search_esim_plans(country: str, duration_days: int, data_gb: float = 5.0) ->
     """Search for eSIM plans for a country."""
     plans = {
         "japan": [
-            {"provider": "Ubigi", "data_gb": 3, "duration_days": 15, "price_usd": 9, "network": "SoftBank"},
-            {"provider": "Airalo", "data_gb": 5, "duration_days": 30, "price_usd": 15, "network": "NTT Docomo"},
-            {"provider": "Airalo", "data_gb": 10, "duration_days": 30, "price_usd": 25, "network": "NTT Docomo"},
-            {"provider": "Sakura Mobile", "data_gb": -1, "duration_days": 30, "price_usd": 35, "network": "SoftBank", "note": "Unlimited data"},
+            {
+                "provider": "Ubigi",
+                "data_gb": 3,
+                "duration_days": 15,
+                "price_usd": 9,
+                "network": "SoftBank",
+            },
+            {
+                "provider": "Airalo",
+                "data_gb": 5,
+                "duration_days": 30,
+                "price_usd": 15,
+                "network": "NTT Docomo",
+            },
+            {
+                "provider": "Airalo",
+                "data_gb": 10,
+                "duration_days": 30,
+                "price_usd": 25,
+                "network": "NTT Docomo",
+            },
+            {
+                "provider": "Sakura Mobile",
+                "data_gb": -1,
+                "duration_days": 30,
+                "price_usd": 35,
+                "network": "SoftBank",
+                "note": "Unlimited data",
+            },
         ],
         "taiwan": [
-            {"provider": "Airalo", "data_gb": 3, "duration_days": 30, "price_usd": 8, "network": "Chunghwa Telecom"},
-            {"provider": "Airalo", "data_gb": 5, "duration_days": 30, "price_usd": 12, "network": "Chunghwa Telecom"},
-            {"provider": "Ubigi", "data_gb": 10, "duration_days": 30, "price_usd": 20, "network": "FarEasTone"},
+            {
+                "provider": "Airalo",
+                "data_gb": 3,
+                "duration_days": 30,
+                "price_usd": 8,
+                "network": "Chunghwa Telecom",
+            },
+            {
+                "provider": "Airalo",
+                "data_gb": 5,
+                "duration_days": 30,
+                "price_usd": 12,
+                "network": "Chunghwa Telecom",
+            },
+            {
+                "provider": "Ubigi",
+                "data_gb": 10,
+                "duration_days": 30,
+                "price_usd": 20,
+                "network": "FarEasTone",
+            },
         ],
     }
 
     country_plans = plans.get(country.lower(), [])
     suitable = [
-        p for p in country_plans
+        p
+        for p in country_plans
         if (p["data_gb"] >= data_gb or p["data_gb"] == -1) and p["duration_days"] >= duration_days
     ]
 
@@ -106,7 +150,12 @@ def get_family_travel_advice(
                     "Teens enjoy the independence of Japan's safe public transport",
                 ],
             },
-            "must_haves": ["Travel insurance", "Child-size masks", "Snacks from home", "Portable WiFi or eSIM"],
+            "must_haves": [
+                "Travel insurance",
+                "Child-size masks",
+                "Snacks from home",
+                "Portable WiFi or eSIM",
+            ],
         },
         "taiwan": {
             "general": [
@@ -132,7 +181,12 @@ def get_family_travel_advice(
                     "Jiufen's Spirited Away vibes appeal to anime fans",
                 ],
             },
-            "must_haves": ["Umbrella/rain gear", "Mosquito repellent", "Sun protection", "EasyCard for transport"],
+            "must_haves": [
+                "Umbrella/rain gear",
+                "Mosquito repellent",
+                "Sun protection",
+                "EasyCard for transport",
+            ],
         },
     }
 

@@ -4,11 +4,25 @@ A full-stack AI travel planning platform powered by **multi-agent orchestration*
 
 **Key highlights:**
 
-- **14 specialized AI agents** organized into 6 crews, orchestrated via a DAG-based flow
+- **15 specialized AI agents** organized into 7 crews, orchestrated via a DAG-based flow
 - **5 MCP tool servers** (Model Context Protocol) providing domain-specific travel data
 - **Real-time progress streaming** — watch each agent crew complete its work via SSE
 - **Intent slot extraction** — two-layer (regex + LLM) approach with multi-turn accumulation
 - **Browsable travel packages** with semantic search (pgvector), i18n, and category filtering
+
+## Screenshots
+
+| Homepage | Travel Packages |
+|----------|----------------|
+| ![Homepage](docs/screenshots/01-homepage-en.png) | ![Packages](docs/screenshots/02-packages-en.png) |
+
+| AI Chat — Markdown Itinerary with Clickable Citations | Citation Panel with Favicons |
+|--------------------------------------------------------|------------------------------|
+| ![Chat Top](docs/screenshots/05-chat-markdown-top.png) | ![Chat Bottom](docs/screenshots/04-chat-markdown-itinerary.png) |
+
+| i18n — 繁體中文 Locale |
+|------------------------|
+| ![Chinese Locale](docs/screenshots/06-chat-zh-locale.png) |
 
 ## Architecture Overview
 
@@ -20,7 +34,7 @@ graph TD
     Postgres["PostgreSQL<br/>+ pgvector"]
     Redis["Redis"]
     Neo4j["Neo4j<br/>Graphiti"]
-    Agents["Agent Layer<br/><small>CrewAI Flow · 6 Crews · 14 Agents</small>"]
+    Agents["Agent Layer<br/><small>CrewAI Flow · 7 Crews · 15 Agents<br/>+ Link Validator</small>"]
     MCP1["Japan MCP<br/><small>5 tools</small>"]
     MCP2["Taiwan MCP<br/><small>4 tools</small>"]
     MCP3["Flights MCP<br/><small>2 tools</small>"]
@@ -164,7 +178,11 @@ graph TD
             A11["Itinerary Writer ✍️<br/><small>creative LLM</small>"]
         end
 
-        C1 --> C2 --> C3 --> C4 --> C5
+        subgraph C6 ["6️⃣ Link Validator"]
+            A12["Link Validator 🔗<br/><small>code-only (no LLM)</small>"]
+        end
+
+        C1 --> C2 --> C3 --> C4 --> C5 --> C6
     end
 
     style C1 fill:#6366f1,color:#fff
@@ -172,9 +190,10 @@ graph TD
     style C3 fill:#f59e0b,color:#000
     style C4 fill:#10b981,color:#fff
     style C5 fill:#ec4899,color:#fff
+    style C6 fill:#64748b,color:#fff
 ```
 
-#### All 6 Crews and 14 Agents
+#### All 7 Crews and 15 Agents
 
 | Crew | Agents | LLM Profile | Role |
 |------|--------|-------------|------|
@@ -184,6 +203,7 @@ graph TD
 | **Booking** | Flight, eSIM | `fast` (temp 0.3) | Search flights and data plans |
 | **Advisory** | Currency, Family Advisor\* | `fast` (temp 0.3) | Exchange rates, kid-friendly advice |
 | **Synthesis** | Itinerary Writer | `creative` (temp 0.8) | Assemble all data into a polished markdown plan |
+| **Link Validator** | Link Validator | _code-only_ (no LLM) | HEAD-check all URLs; remove dead links from response |
 
 \* _Conditional agents_ — Ski Agent activates only when `has_skiing=true`; Family Advisor activates only when `children_ages` is present.
 
@@ -212,6 +232,7 @@ data: {"step":"routing",         "crew":"router",   "status":"active"}
 data: {"step":"planning",        "crew":"japan",    "status":"active"}
 data: {"step":"post_processing", "crew":["booking","advisory"], "status":"active"}
 data: {"step":"synthesizing",    "crew":"synthesis", "status":"active"}
+data: {"step":"link_validation", "crew":"link_validator", "status":"active"}
 data: {"step":"complete",        "crew":"all",      "status":"done"}
 ```
 
@@ -235,13 +256,14 @@ Each agent crew calls domain-specific **MCP tool servers** via the [Model Contex
 |-------|------------|
 | Frontend | React 19, TypeScript, Vite 6, Tailwind CSS, Zustand, React Router 7 |
 | Backend | FastAPI, SQLModel, SQLAlchemy 2 (async), Alembic, Pydantic v2 |
-| Agent Orchestration | CrewAI (Flow + Crews), 14 specialized agents, 3 LLM profiles |
+| Agent Orchestration | CrewAI (Flow + Crews), 15 specialized agents, 3 LLM profiles |
 | Tool Protocol | MCP (Model Context Protocol) via FastMCP, Streamable HTTP |
 | LLM Gateway | OpenRouter (model-agnostic — swap models via `.env`) |
 | Database | PostgreSQL 17 + pgvector, Neo4j 5 (Graphiti knowledge graph) |
 | Cache / Rate Limit | Redis 7 (sliding window + daily AI query caps) |
 | Auth | Google OAuth 2.0, LINE Login, JWT (access + refresh tokens) |
 | CI/CD | GitHub Actions, GitLab CI (lint → build → test) |
+| i18n | English (default) + Traditional Chinese, localStorage preference |
 | Infrastructure | Docker Compose (11 services), Nginx reverse proxy |
 
 ## Project Structure
@@ -271,8 +293,8 @@ ai-agent-trip/
 │   │   ├── flow.py               # ★ TripPlanningFlow (DAG entry point)
 │   │   ├── state.py              # ★ IntentSlots + TripPlanningState models
 │   │   ├── llm_config.py         # LLM profiles (fast/reasoning/creative)
-│   │   ├── crews/                # 6 crew definitions
-│   │   ├── agents/               # 14 agent definitions
+│   │   ├── crews/                # 7 crew definitions
+│   │   ├── agents/               # 15 agent definitions
 │   │   └── tasks/                # Task templates per crew
 │   └── mcp_servers/              # 5 MCP tool servers (FastMCP)
 │       ├── japan_travel/         #   5 tools: itinerary, hotel, festival, ski, train

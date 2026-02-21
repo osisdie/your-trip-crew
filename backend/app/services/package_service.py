@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -70,7 +69,9 @@ async def list_packages(
 
 
 async def get_package_by_slug(
-    db: AsyncSession, slug: str, locale: str | None = None,
+    db: AsyncSession,
+    slug: str,
+    locale: str | None = None,
 ) -> TravelPackage:
     stmt = (
         select(TravelPackage)
@@ -96,8 +97,6 @@ async def get_categories(db: AsyncSession) -> list[str]:
 
 
 async def get_destinations(db: AsyncSession) -> list[str]:
-    stmt = (
-        select(TravelPackage.destination).distinct().where(TravelPackage.is_published.is_(True))
-    )
+    stmt = select(TravelPackage.destination).distinct().where(TravelPackage.is_published.is_(True))
     result = await db.execute(stmt)
     return [row[0] for row in result.all()]

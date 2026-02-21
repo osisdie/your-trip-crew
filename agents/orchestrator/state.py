@@ -22,11 +22,13 @@ class IntentSlots(BaseModel):
     @property
     def is_complete(self) -> bool:
         """Check if we have enough info to plan a trip."""
-        return all([
-            self.destination,
-            self.duration_days or (self.start_date and self.end_date),
-            self.num_travelers,
-        ])
+        return all(
+            [
+                self.destination,
+                self.duration_days or (self.start_date and self.end_date),
+                self.num_travelers,
+            ]
+        )
 
     @property
     def missing_fields(self) -> list[str]:
@@ -66,5 +68,6 @@ class TripPlanningState(BaseModel):
 
     # Final output
     final_itinerary: str | None = None
+    validated_itinerary: str | None = None
     cost_breakdown: dict | None = None
     clarifying_questions: list[str] | None = None

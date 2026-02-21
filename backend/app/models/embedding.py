@@ -17,6 +17,4 @@ class TravelEmbedding(SQLModel, table=True):
         default=None,
         sa_column=SAColumn(Vector(1536)),
     )
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))

@@ -1,0 +1,57 @@
+# Pre-commit hooks for AI Trip Planner
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # =============================================================================
+  # 通用檢查
+  # =============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=2000']
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # =============================================================================
+  # Conventional Commits 驗證 (可選，若不需要可註解)
+  # =============================================================================
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+
+  # =============================================================================
+  # Python (Ruff) — backend + agents
+  # =============================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.14
+    hooks:
+      - id: ruff
+        args: ['--fix']
+        files: ^(backend|agents)/
+      - id: ruff-format
+        files: ^(backend|agents)/
+
+  # =============================================================================
+  # 前端 TypeScript (pnpm + tsc，與 CI 一致)
+  # =============================================================================
+  - repo: local
+    hooks:
+      - id: frontend-tsc
+        name: frontend tsc
+        entry: bash -c 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; cd frontend && pnpm exec tsc --noEmit'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false

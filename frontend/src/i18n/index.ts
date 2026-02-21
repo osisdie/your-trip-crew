@@ -14,7 +14,7 @@ interface I18nState {
 }
 
 export const useI18nStore = create<I18nState>((set) => ({
-  locale: (localStorage.getItem("locale") as Locale) || "zh",
+  locale: (localStorage.getItem("locale") as Locale) || "en",
   setLocale: (locale) => {
     localStorage.setItem("locale", locale);
     document.documentElement.lang = HTML_LANG[locale] || locale;

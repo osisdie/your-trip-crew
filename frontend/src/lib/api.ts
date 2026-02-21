@@ -81,13 +81,16 @@ export const chatApi = {
       `/chat/sessions/${sessionId}/messages?limit=${limit}&offset=${offset}`
     ),
   sendMessage: (sessionId: string, content: string) =>
-    api.post<ChatMessage>(`/chat/sessions/${sessionId}/messages`, { content }),
+    api.post<ChatMessage>(`/chat/sessions/${sessionId}/messages`, {
+      content,
+      locale: localStorage.getItem("locale") || "en",
+    }),
 };
 
 // ─── Packages ────────────────────────────────────
 /** Get the current locale from localStorage (set by i18n store). */
 function getLocale(): string {
-  return localStorage.getItem("locale") || "zh";
+  return localStorage.getItem("locale") || "en";
 }
 
 export const packageApi = {

@@ -60,11 +60,13 @@ async def websocket_chat(websocket: WebSocket, session_id: uuid.UUID, token: str
                 await chat_service.add_message(db, session_id, MessageRole.assistant, response)
 
                 # Send slots update so the client can react
-                await websocket.send_json({
-                    "type": "slots_update",
-                    "content": "",
-                    "slots": updated_slots,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "slots_update",
+                        "content": "",
+                        "slots": updated_slots,
+                    }
+                )
 
                 # Send response
                 await websocket.send_json({"type": "message", "content": response})

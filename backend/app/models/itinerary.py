@@ -26,9 +26,7 @@ class Itinerary(SQLModel, table=True):
     total_cost_usd: float | None = None
     cost_breakdown: dict | None = Field(default=None, sa_column=Column(JSON))
     status: ItineraryStatus = Field(default=ItineraryStatus.draft)
-    created_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
 
     # Relationships
     user: "User" = Relationship(back_populates="itineraries")  # noqa: F821

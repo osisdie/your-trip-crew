@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
@@ -39,7 +40,37 @@ export default {
           "sans-serif",
         ],
       },
+      typography: {
+        sm: {
+          css: {
+            // Tighter spacing for chat bubbles
+            h2: { marginTop: "0.75em", marginBottom: "0.25em" },
+            h3: { marginTop: "0.5em", marginBottom: "0.25em" },
+            p: { marginTop: "0.35em", marginBottom: "0.35em" },
+            ul: { marginTop: "0.25em", marginBottom: "0.25em" },
+            ol: { marginTop: "0.25em", marginBottom: "0.25em" },
+            li: { marginTop: "0.1em", marginBottom: "0.1em" },
+            // Table styling
+            "thead th": {
+              borderBottomWidth: "2px",
+              backgroundColor: "var(--tw-prose-th-bg, #f9fafb)",
+              padding: "0.5em 0.75em",
+            },
+            "tbody td": {
+              borderBottomWidth: "1px",
+              borderBottomColor: "#e5e7eb",
+              padding: "0.5em 0.75em",
+            },
+            table: {
+              borderCollapse: "collapse",
+              width: "100%",
+            },
+            // Link color
+            a: { color: "#1d4ed8" },
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [typography],
 } satisfies Config;

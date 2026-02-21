@@ -20,9 +20,7 @@ class ChatSession(SQLModel, table=True):
     title: str = Field(default="New Chat", max_length=200)
     is_active: bool = Field(default=True)
     intent_slots: dict | None = Field(default=None, sa_column=Column(JSON))
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     updated_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     )
@@ -40,9 +38,7 @@ class ChatMessage(SQLModel, table=True):
     role: MessageRole
     content: str
     metadata_: dict | None = Field(default=None, sa_column=Column("metadata", JSON))
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
 
     # Relationships
     session: ChatSession = Relationship(back_populates="messages")
