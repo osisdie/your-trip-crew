@@ -7,9 +7,7 @@ from app.core.exceptions import NotFoundError
 from app.models.chat import ChatMessage, ChatSession, MessageRole
 
 
-async def create_session(
-    db: AsyncSession, user_id: uuid.UUID, title: str | None = None
-) -> ChatSession:
+async def create_session(db: AsyncSession, user_id: uuid.UUID, title: str | None = None) -> ChatSession:
     session = ChatSession(
         user_id=user_id,
         title=title or "New Chat",
@@ -30,9 +28,7 @@ async def list_sessions(db: AsyncSession, user_id: uuid.UUID) -> list[ChatSessio
     return list(result.scalars().all())
 
 
-async def get_session(
-    db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUID
-) -> ChatSession:
+async def get_session(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUID) -> ChatSession:
     stmt = select(ChatSession).where(
         ChatSession.id == session_id,
         ChatSession.user_id == user_id,
@@ -44,9 +40,7 @@ async def get_session(
     return session
 
 
-async def delete_session(
-    db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUID
-) -> None:
+async def delete_session(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUID) -> None:
     session = await get_session(db, session_id, user_id)
     session.is_active = False
     await db.commit()
@@ -95,9 +89,7 @@ async def get_messages(
     return list(result.scalars().all()), total
 
 
-async def update_intent_slots(
-    db: AsyncSession, session_id: uuid.UUID, slots: dict
-) -> ChatSession:
+async def update_intent_slots(db: AsyncSession, session_id: uuid.UUID, slots: dict) -> ChatSession:
     session = await db.get(ChatSession, session_id)
     if not session:
         raise NotFoundError("Chat session not found")

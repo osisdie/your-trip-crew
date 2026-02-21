@@ -19,9 +19,7 @@ class User(SQLModel, table=True):
     avatar_url: str | None = None
     tier: UserTier = Field(default=UserTier.free)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     updated_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     )
@@ -43,9 +41,7 @@ class UserOAuthAccount(SQLModel, table=True):
     access_token: str | None = None
     refresh_token: str | None = None
     token_expires_at: datetime | None = None
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
 
     # Relationships
     user: User = Relationship(back_populates="oauth_accounts")

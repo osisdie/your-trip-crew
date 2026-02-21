@@ -18,23 +18,38 @@ def search_taiwan_itinerary(
         "taipei": {
             "city": "Taipei",
             "suggestions": [
-                {"theme": "Classic Taipei", "areas": ["Taipei 101", "Ximending", "Shilin Night Market", "Jiufen"]},
-                {"theme": "Local Life", "areas": ["Dadaocheng", "Yongkang Street", "Maokong", "Beitou"]},
+                {
+                    "theme": "Classic Taipei",
+                    "areas": ["Taipei 101", "Ximending", "Shilin Night Market", "Jiufen"],
+                },
+                {
+                    "theme": "Local Life",
+                    "areas": ["Dadaocheng", "Yongkang Street", "Maokong", "Beitou"],
+                },
             ],
             "budget_per_day": {"low": 40, "medium": 80, "high": 180},
         },
         "tainan": {
             "city": "Tainan",
             "suggestions": [
-                {"theme": "Heritage Walk", "areas": ["Anping Fort", "Confucius Temple", "Shennong Street"]},
-                {"theme": "Food Trail", "areas": ["Hayashi Department Store", "Garden Night Market"]},
+                {
+                    "theme": "Heritage Walk",
+                    "areas": ["Anping Fort", "Confucius Temple", "Shennong Street"],
+                },
+                {
+                    "theme": "Food Trail",
+                    "areas": ["Hayashi Department Store", "Garden Night Market"],
+                },
             ],
             "budget_per_day": {"low": 30, "medium": 60, "high": 120},
         },
         "hualien": {
             "city": "Hualien",
             "suggestions": [
-                {"theme": "Taroko Gorge", "areas": ["Shakadang Trail", "Swallow Grotto", "Eternal Spring Shrine"]},
+                {
+                    "theme": "Taroko Gorge",
+                    "areas": ["Shakadang Trail", "Swallow Grotto", "Eternal Spring Shrine"],
+                },
                 {"theme": "Coastal", "areas": ["Qingshui Cliffs", "Shitiping", "East Coast"]},
             ],
             "budget_per_day": {"low": 35, "medium": 70, "high": 150},
@@ -72,18 +87,48 @@ def search_taiwan_hotels(
     """Search for hotels in Taiwanese cities."""
     hotels = {
         "taipei": [
-            {"name": "Amba Taipei Songshan", "area": "Songshan", "price_per_night": 90, "rating": 4.4},
-            {"name": "Hotel Proverbs Taipei", "area": "Da'an", "price_per_night": 150, "rating": 4.6},
+            {
+                "name": "Amba Taipei Songshan",
+                "area": "Songshan",
+                "price_per_night": 90,
+                "rating": 4.4,
+            },
+            {
+                "name": "Hotel Proverbs Taipei",
+                "area": "Da'an",
+                "price_per_night": 150,
+                "rating": 4.6,
+            },
             {"name": "Star Hostel Taipei", "area": "Station", "price_per_night": 20, "rating": 4.5},
-            {"name": "Mandarin Oriental Taipei", "area": "Songshan", "price_per_night": 350, "rating": 4.9},
-            {"name": "CityInn Hotel Taipei Station", "area": "Station", "price_per_night": 55, "rating": 4.2},
+            {
+                "name": "Mandarin Oriental Taipei",
+                "area": "Songshan",
+                "price_per_night": 350,
+                "rating": 4.9,
+            },
+            {
+                "name": "CityInn Hotel Taipei Station",
+                "area": "Station",
+                "price_per_night": 55,
+                "rating": 4.2,
+            },
         ],
         "tainan": [
-            {"name": "Silks Place Tainan", "area": "West Central", "price_per_night": 120, "rating": 4.5},
+            {
+                "name": "Silks Place Tainan",
+                "area": "West Central",
+                "price_per_night": 120,
+                "rating": 4.5,
+            },
             {"name": "U.I.J Hotel", "area": "West Central", "price_per_night": 80, "rating": 4.4},
         ],
         "hualien": [
-            {"name": "Taroko Village Hotel", "area": "Taroko", "price_per_night": 100, "rating": 4.3},
+            {
+                "name": "Taroko Village Hotel",
+                "area": "Taroko",
+                "price_per_night": 100,
+                "rating": 4.3,
+            },
             {"name": "Kadda Hotel", "area": "Downtown", "price_per_night": 70, "rating": 4.2},
         ],
     }
@@ -108,19 +153,54 @@ def search_taiwan_festivals(region: str, month: int, year: int = 2025) -> dict:
     """Search for festivals and events in Taiwan."""
     festivals = {
         "taipei": [
-            {"month": 2, "name": "Taipei Lantern Festival", "location": "Various", "dates": "February"},
-            {"month": 5, "name": "Dragon Boat Festival", "location": "Dajia Riverside", "dates": "May/June"},
-            {"month": 10, "name": "Taipei Arts Festival", "location": "Various venues", "dates": "October"},
+            {
+                "month": 2,
+                "name": "Taipei Lantern Festival",
+                "location": "Various",
+                "dates": "February",
+            },
+            {
+                "month": 5,
+                "name": "Dragon Boat Festival",
+                "location": "Dajia Riverside",
+                "dates": "May/June",
+            },
+            {
+                "month": 10,
+                "name": "Taipei Arts Festival",
+                "location": "Various venues",
+                "dates": "October",
+            },
         ],
         "tainan": [
-            {"month": 3, "name": "Yanshui Beehive Fireworks", "location": "Yanshui", "dates": "Lantern Festival"},
-            {"month": 4, "name": "Mazu Pilgrimage", "location": "Dajia to Xingang", "dates": "March/April"},
+            {
+                "month": 3,
+                "name": "Yanshui Beehive Fireworks",
+                "location": "Yanshui",
+                "dates": "Lantern Festival",
+            },
+            {
+                "month": 4,
+                "name": "Mazu Pilgrimage",
+                "location": "Dajia to Xingang",
+                "dates": "March/April",
+            },
         ],
         "hualien": [
-            {"month": 7, "name": "Amis Harvest Festival", "location": "Various tribes", "dates": "July-August"},
+            {
+                "month": 7,
+                "name": "Amis Harvest Festival",
+                "location": "Various tribes",
+                "dates": "July-August",
+            },
         ],
         "pingxi": [
-            {"month": 2, "name": "Pingxi Sky Lantern Festival", "location": "Pingxi", "dates": "Lantern Festival"},
+            {
+                "month": 2,
+                "name": "Pingxi Sky Lantern Festival",
+                "location": "Pingxi",
+                "dates": "Lantern Festival",
+            },
         ],
     }
 
@@ -149,20 +229,50 @@ def plan_taiwan_train_route(
         ("taipei", "taichung"): {"method": "HSR", "duration": "50m", "price_usd": 22, "hsr": True},
         ("taipei", "tainan"): {"method": "HSR", "duration": "1h 45m", "price_usd": 38, "hsr": True},
         ("taipei", "kaohsiung"): {"method": "HSR", "duration": "2h", "price_usd": 42, "hsr": True},
-        ("taipei", "hualien"): {"method": "TRA Taroko Express", "duration": "2h 10m", "price_usd": 15, "hsr": False, "note": "Scenic east coast route. Book early!"},
-        ("taipei", "jiufen"): {"method": "TRA + Bus", "duration": "1h 30m", "price_usd": 5, "hsr": False},
-        ("taichung", "sun_moon_lake"): {"method": "Bus from HSR station", "duration": "1h 40m", "price_usd": 6, "hsr": False},
-        ("kaohsiung", "kenting"): {"method": "Kenting Express Bus", "duration": "2h 30m", "price_usd": 12, "hsr": False},
-        ("chiayi", "alishan"): {"method": "Alishan Forest Railway", "duration": "2h 30m", "price_usd": 13, "hsr": False, "note": "Scenic mountain railway. Limited seats."},
+        ("taipei", "hualien"): {
+            "method": "TRA Taroko Express",
+            "duration": "2h 10m",
+            "price_usd": 15,
+            "hsr": False,
+            "note": "Scenic east coast route. Book early!",
+        },
+        ("taipei", "jiufen"): {
+            "method": "TRA + Bus",
+            "duration": "1h 30m",
+            "price_usd": 5,
+            "hsr": False,
+        },
+        ("taichung", "sun_moon_lake"): {
+            "method": "Bus from HSR station",
+            "duration": "1h 40m",
+            "price_usd": 6,
+            "hsr": False,
+        },
+        ("kaohsiung", "kenting"): {
+            "method": "Kenting Express Bus",
+            "duration": "2h 30m",
+            "price_usd": 12,
+            "hsr": False,
+        },
+        ("chiayi", "alishan"): {
+            "method": "Alishan Forest Railway",
+            "duration": "2h 30m",
+            "price_usd": 13,
+            "hsr": False,
+            "note": "Scenic mountain railway. Limited seats.",
+        },
     }
 
     key = (origin.lower(), destination.lower())
-    route = routes.get(key, {
-        "method": "TRA",
-        "duration": "varies",
-        "price_usd": 15,
-        "hsr": False,
-    })
+    route = routes.get(
+        key,
+        {
+            "method": "TRA",
+            "duration": "varies",
+            "price_usd": 15,
+            "hsr": False,
+        },
+    )
 
     total_price = route["price_usd"] * passengers
 

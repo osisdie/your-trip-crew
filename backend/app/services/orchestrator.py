@@ -6,8 +6,10 @@ merged with accumulated slots, and persisted to ChatSession.intent_slots.
 When required slots are complete, the LLM switches to itinerary generation mode.
 """
 
+import asyncio
 import json
 import logging
+import os
 import re
 import uuid
 
@@ -23,28 +25,29 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 LLM_MODELS = [settings.llm_model_primary, settings.llm_model_fallback]
 
-SYSTEM_PROMPT = """\
-You are a professional travel planning assistant specializing in Japan and Taiwan trips.
-Your job is to help users plan complete travel itineraries.
+# ---------------------------------------------------------------------------
+# Shared instructions appended to both prompts
+# ---------------------------------------------------------------------------
+_SHARED_INSTRUCTIONS = """\
 
-RULES:
-1. Respond in the SAME LANGUAGE as the user. If the user writes in Chinese, reply in
-   Traditional Chinese (繁體中文), NOT Simplified Chinese.
-2. If critical info is missing (destination, dates/duration, number of travelers), \
-ask clarifying questions. List what you still need.
-3. If you have enough info, create a detailed day-by-day itinerary with:
-   - Daily schedule (morning/afternoon/evening)
-   - Accommodation recommendations
-   - Transportation between locations
-   - Estimated costs in USD and local currency
-   - Total cost breakdown (flights, hotels, transport, activities, meals)
-4. Consider children's ages for family trips, ski level for ski trips, \
-and seasonal events/festivals.
-5. Be specific with place names, train lines, and restaurant recommendations.
+FORMAT RULES:
+- Always respond in **Markdown** unless the response is very short (under 2 sentences).
+- Use headings (##, ###), bullet lists, bold, and tables for itineraries and comparisons.
+
+LINK & CITATION RULES:
+- Include relevant external links to official websites, booking platforms, and travel resources.
+  Examples: attraction official sites, Japan Rail Pass, booking.com, klook, Google Maps.
+- Include internal links to our travel packages where relevant: `/packages/{{slug}}`
+- Format all links using numbered citation style:
+  "Visit Sensō-ji Temple [1] in the morning, then take the Tsukuba Express [2]."
+  At the end of the response, add a **References** section:
+  [1]: https://www.senso-ji.jp/ "Sensō-ji Temple Official Site"
+  [2]: https://www.mir.co.jp/en/ "Tsukuba Express"
+- Only cite real, well-known URLs. Do NOT invent or guess URLs.
 
 SLOT EXTRACTION (MANDATORY):
 After your response, you MUST append exactly one line in this format:
-SLOTS_JSON: {"destination":"...","duration_days":...,"num_travelers":...}
+SLOTS_JSON: {{"destination":"...","duration_days":...,"num_travelers":...}}
 
 Rules for the SLOTS_JSON line:
 - Include ONLY fields where the user has provided clear information.
@@ -64,20 +67,85 @@ Rules for the SLOTS_JSON line:
 - Do NOT reference or explain SLOTS_JSON in your visible response.\
 """
 
+GREETING_PROMPT = (
+    """\
+You are a professional travel planning assistant specializing in Japan and Taiwan trips.
+Your job is to help users plan complete travel itineraries.
+
+RULES:
+1. Greet the user in {locale} language.
+2. If critical info is missing (destination, dates/duration, number of travelers), \
+ask clarifying questions. List what you still need.
+3. If you have enough info, create a detailed day-by-day itinerary with:
+   - Daily schedule (morning/afternoon/evening)
+   - Accommodation recommendations
+   - Transportation between locations
+   - Estimated costs in USD and local currency
+   - Total cost breakdown (flights, hotels, transport, activities, meals)
+4. Consider children's ages for family trips, ski level for ski trips, \
+and seasonal events/festivals.
+5. Be specific with place names, train lines, and restaurant recommendations.
+"""
+    + _SHARED_INSTRUCTIONS
+)
+
+CONVERSATION_PROMPT = (
+    """\
+You are a professional travel planning assistant specializing in Japan and Taiwan trips.
+Your job is to help users plan complete travel itineraries.
+
+RULES:
+1. Respond in the SAME LANGUAGE as the user.
+2. If critical info is missing (destination, dates/duration, number of travelers), \
+ask clarifying questions. List what you still need.
+3. If you have enough info, create a detailed day-by-day itinerary with:
+   - Daily schedule (morning/afternoon/evening)
+   - Accommodation recommendations
+   - Transportation between locations
+   - Estimated costs in USD and local currency
+   - Total cost breakdown (flights, hotels, transport, activities, meals)
+4. Consider children's ages for family trips, ski level for ski trips, \
+and seasonal events/festivals.
+5. Be specific with place names, train lines, and restaurant recommendations.
+"""
+    + _SHARED_INSTRUCTIONS
+)
+
 # Regex: match the last occurrence of SLOTS_JSON: {...} at end of content
 _SLOTS_RE = re.compile(r"\n?SLOTS_JSON:\s*(\{[^\n]*\})\s*$")
 
+# URL regex for link validation
+_URL_RE = re.compile(r'https?://[^\s\)\]"\'<>]+')
+
 # Fields that IntentSlots / TripPlanningState recognise
-_KNOWN_SLOT_KEYS = frozenset({
-    "destination", "start_date", "end_date", "duration_days",
-    "num_travelers", "budget_usd", "trip_style", "origin_city",
-    "preferences", "children_ages",
-})
+_KNOWN_SLOT_KEYS = frozenset(
+    {
+        "destination",
+        "start_date",
+        "end_date",
+        "duration_days",
+        "num_travelers",
+        "budget_usd",
+        "trip_style",
+        "origin_city",
+        "preferences",
+        "children_ages",
+    }
+)
+
+# Locale display names for the greeting prompt
+_LOCALE_NAMES = {
+    "en": "English",
+    "zh": "Traditional Chinese (繁體中文)",
+    "zh-TW": "Traditional Chinese (繁體中文)",
+    "ja": "Japanese",
+}
 
 
 # ---------------------------------------------------------------------------
 # Slot helpers
 # ---------------------------------------------------------------------------
+
 
 def _extract_slots_from_llm(content: str) -> tuple[str, dict | None]:
     """Parse SLOTS_JSON from the tail of an LLM response.
@@ -110,9 +178,7 @@ _DURATION_RE = re.compile(r"(\d+)\s*(?:天|日|days?|nights?)", re.I)
 _TRAVELERS_RE = re.compile(r"(\d+)\s*(?:人|個人|位|adults?|people|persons?|pax)", re.I)
 _BUDGET_RE = re.compile(r"(?:預算|budget)[^\d]*(\d[\d,]*)\s*(?:美[金元]|usd|\$)?", re.I)
 _BUDGET_RE2 = re.compile(r"\$\s*(\d[\d,]*)", re.I)
-_CHILDREN_RE = re.compile(
-    r"(?:小孩|孩子|兒童|children?|kids?)\D*(\d+)\s*(?:歲|岁|years?\s*old|yo)", re.I
-)
+_CHILDREN_RE = re.compile(r"(?:小孩|孩子|兒童|children?|kids?)\D*(\d+)\s*(?:歲|岁|years?\s*old|yo)", re.I)
 _DATE_RE = re.compile(r"(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})")
 
 
@@ -205,6 +271,7 @@ def _missing_fields(slots: dict | None) -> list[str]:
 # LLM calling
 # ---------------------------------------------------------------------------
 
+
 async def _call_llm(client: httpx.AsyncClient, model: str, messages: list[dict]) -> str | None:
     """Call OpenRouter with a specific model. Returns content or None on failure."""
     try:
@@ -241,13 +308,9 @@ def _build_user_prompt(user_message: str, intent_slots: dict | None) -> str:
     parts: list[str] = []
 
     if intent_slots:
-        parts.append(
-            f"[Accumulated travel info]: {json.dumps(intent_slots, ensure_ascii=False)}"
-        )
+        parts.append(f"[Accumulated travel info]: {json.dumps(intent_slots, ensure_ascii=False)}")
         if slots_complete(intent_slots):
-            parts.append(
-                "[Status]: All required info collected. Generate a detailed itinerary now."
-            )
+            parts.append("[Status]: All required info collected. Generate a detailed itinerary now.")
         else:
             missing = _missing_fields(intent_slots)
             parts.append(f"[Status]: Still need: {', '.join(missing)}")
@@ -259,8 +322,63 @@ def _build_user_prompt(user_message: str, intent_slots: dict | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Link validation (post-processing)
+# ---------------------------------------------------------------------------
+
+# Derive concurrency limit from runtime resources.
+# Free-threading (PEP 703) builds aren't GIL-bound, so higher I/O concurrency
+# is safe.  Standard CPython stays conservative to avoid fd exhaustion.
+_LINK_MAX_CONCURRENCY = min(os.cpu_count() or 4, 16) * 2
+
+
+async def _validate_links(content: str) -> str:
+    """Validate URLs in markdown content. Remove dead links.
+
+    Uses a single shared AsyncClient (connection pooling) and a semaphore
+    to cap concurrency based on available runtime resources.
+    """
+    urls = list(set(_URL_RE.findall(content)))
+    if not urls:
+        return content
+
+    sem = asyncio.Semaphore(_LINK_MAX_CONCURRENCY)
+
+    async def check_url(client: httpx.AsyncClient, url: str) -> tuple[str, bool]:
+        async with sem:
+            try:
+                resp = await client.head(url)
+                return url, resp.status_code < 400
+            except Exception:
+                return url, False
+
+    async with httpx.AsyncClient(
+        timeout=5.0,
+        follow_redirects=True,
+        limits=httpx.Limits(
+            max_connections=_LINK_MAX_CONCURRENCY,
+            max_keepalive_connections=_LINK_MAX_CONCURRENCY // 2,
+        ),
+    ) as client:
+        results = await asyncio.gather(*[check_url(client, u) for u in urls])
+
+    dead_urls = {url for url, ok in results if not ok}
+
+    if not dead_urls:
+        return content
+
+    for url in dead_urls:
+        # Remove lines containing dead URLs from References section
+        content = re.sub(rf"\n\[?\d*\]?:?\s*{re.escape(url)}[^\n]*", "", content)
+        # Convert inline dead links to plain text: [text](url) → text
+        content = re.sub(rf"\[([^\]]+)\]\({re.escape(url)}\)", r"\1", content)
+
+    return content.strip()
+
+
+# ---------------------------------------------------------------------------
 # Flow-event helper (best-effort — never breaks the chat flow)
 # ---------------------------------------------------------------------------
+
 
 async def _emit(session_id, **kwargs) -> None:
     try:
@@ -273,10 +391,12 @@ async def _emit(session_id, **kwargs) -> None:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 async def process_user_message(
     session_id: uuid.UUID,
     user_message: str,
     intent_slots: dict | None,
+    locale: str = "en",
 ) -> tuple[str, dict]:
     """Process a chat message and return (visible_reply, updated_slots).
 
@@ -290,33 +410,67 @@ async def process_user_message(
     await _emit(session_id, step="received", status="active", message="Message received")
 
     # Layer 1: rule-based extraction from user message (reliable)
-    await _emit(session_id, step="intent_parsing", crew="intent", status="active",
-                message="Extracting intent from user message")
+    await _emit(
+        session_id,
+        step="intent_parsing",
+        crew="intent",
+        status="active",
+        message="Extracting intent from user message",
+    )
     regex_slots = _extract_slots_from_message(user_message)
     merged = _merge_slots(intent_slots, regex_slots)
     logger.info("Regex extraction: %s | after merge: %s", regex_slots, merged)
-    await _emit(session_id, step="intent_parsing", crew="intent", status="done",
-                slots=merged, message="Slots extracted via regex")
+    await _emit(
+        session_id,
+        step="intent_parsing",
+        crew="intent",
+        status="done",
+        slots=merged,
+        message="Slots extracted via regex",
+    )
 
     # Check completeness → routing decision
-    await _emit(session_id, step="routing", crew="router", status="active",
-                message="Checking slot completeness")
+    await _emit(
+        session_id,
+        step="routing",
+        crew="router",
+        status="active",
+        message="Checking slot completeness",
+    )
     dest = merged.get("destination")
     dest_crew = dest if dest in ("japan", "taiwan") else None
-    await _emit(session_id, step="routing", crew="router", status="done",
-                slots=merged,
-                message=f"Route: {'plan_' + dest if dest_crew else 'ask_user'}")
+    await _emit(
+        session_id,
+        step="routing",
+        crew="router",
+        status="done",
+        slots=merged,
+        message=f"Route: {'plan_' + dest if dest_crew else 'ask_user'}",
+    )
+
+    # Select prompt: greeting (first message) vs conversation (subsequent)
+    is_greeting = not intent_slots
+    if is_greeting:
+        locale_name = _LOCALE_NAMES.get(locale, locale)
+        system_prompt = GREETING_PROMPT.format(locale=locale_name)
+    else:
+        system_prompt = CONVERSATION_PROMPT
 
     # Build LLM prompt with latest accumulated context
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": _build_user_prompt(user_message, merged)},
     ]
 
     # LLM call → planning phase
     planning_crew = dest_crew or "japan"
-    await _emit(session_id, step="planning", crew=planning_crew, status="active",
-                message="Waiting for LLM response")
+    await _emit(
+        session_id,
+        step="planning",
+        crew=planning_crew,
+        status="active",
+        message="Waiting for LLM response",
+    )
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         for model in LLM_MODELS:
@@ -324,35 +478,74 @@ async def process_user_message(
             content = await _call_llm(client, model, messages)
             if content:
                 logger.info("Success with model: %s", model)
-                await _emit(session_id, step="planning", crew=planning_crew, status="done",
-                            message=f"LLM responded ({model})")
+                await _emit(
+                    session_id,
+                    step="planning",
+                    crew=planning_crew,
+                    status="done",
+                    message=f"LLM responded ({model})",
+                )
 
                 # Layer 2: LLM SLOTS_JSON (bonus) → post-processing
-                await _emit(session_id, step="post_processing",
-                            crew=["booking", "advisory"], status="active",
-                            message="Extracting LLM slots")
+                await _emit(
+                    session_id,
+                    step="post_processing",
+                    crew=["booking", "advisory"],
+                    status="active",
+                    message="Extracting LLM slots",
+                )
                 visible, llm_slots = _extract_slots_from_llm(content)
                 if llm_slots:
                     merged = _merge_slots(merged, llm_slots)
                     logger.info("LLM slots: %s | final: %s", llm_slots, merged)
-                await _emit(session_id, step="post_processing",
-                            crew=["booking", "advisory"], status="done",
-                            slots=merged, message="Slots merged")
+                await _emit(
+                    session_id,
+                    step="post_processing",
+                    crew=["booking", "advisory"],
+                    status="done",
+                    slots=merged,
+                    message="Slots merged",
+                )
+
+                # Link validation
+                await _emit(
+                    session_id,
+                    step="link_validation",
+                    crew="link_validator",
+                    status="active",
+                    message="Validating links",
+                )
+                visible = await _validate_links(visible)
+                await _emit(
+                    session_id,
+                    step="link_validation",
+                    crew="link_validator",
+                    status="done",
+                    message="Links validated",
+                )
 
                 logger.info(
                     "Final slots: %s | complete: %s",
-                    merged, slots_complete(merged),
+                    merged,
+                    slots_complete(merged),
                 )
 
-                await _emit(session_id, step="synthesizing", crew="synthesis",
-                            status="done", slots=merged, message="Response ready")
-                await _emit(session_id, step="complete", status="done",
-                            slots=merged, message="All done")
+                await _emit(
+                    session_id,
+                    step="synthesizing",
+                    crew="synthesis",
+                    status="done",
+                    slots=merged,
+                    message="Response ready",
+                )
+                await _emit(session_id, step="complete", status="done", slots=merged, message="All done")
                 return visible, merged
 
-    await _emit(session_id, step="complete", status="error",
-                slots=merged, message="All LLM models unavailable")
-    return (
-        "I'm sorry, all AI models are currently unavailable. "
-        "Please try again in a few minutes."
-    ), merged
+    await _emit(
+        session_id,
+        step="complete",
+        status="error",
+        slots=merged,
+        message="All LLM models unavailable",
+    )
+    return ("I'm sorry, all AI models are currently unavailable. Please try again in a few minutes."), merged

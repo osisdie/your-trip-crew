@@ -1,6 +1,9 @@
 """Shared fixtures for E2E tests.
 
-Tests run against the live backend inside Docker (http://trip-backend:8000).
+Tests run against a live backend. Set TEST_BASE_URL for your environment:
+  - Inside trip-backend container (make test-backend): http://localhost:8000
+  - From host with docker-compose (port 8200): http://localhost:8200
+  - CI (inside container): http://localhost:8000
 """
 
 import os

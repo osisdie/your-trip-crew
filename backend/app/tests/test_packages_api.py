@@ -13,8 +13,14 @@ class TestListPackages:
         resp = client.get("/api/v1/packages")
         pkg = resp.json()[0]
         for field in (
-            "id", "title", "slug", "destination", "category",
-            "summary", "price_usd", "duration_days",
+            "id",
+            "title",
+            "slug",
+            "destination",
+            "category",
+            "summary",
+            "price_usd",
+            "duration_days",
         ):
             assert field in pkg, f"Missing field: {field}"
 

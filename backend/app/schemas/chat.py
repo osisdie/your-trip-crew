@@ -21,6 +21,7 @@ class ChatSessionRead(BaseModel):
 
 class ChatMessageCreate(BaseModel):
     content: str
+    locale: str = "en"
 
 
 class ChatMessageRead(BaseModel):

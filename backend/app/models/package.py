@@ -21,9 +21,7 @@ class TravelPackage(SQLModel, table=True):
     highlights: list[str] | None = Field(default=None, sa_column=Column(JSON))
     translations: dict | None = Field(default=None, sa_column=Column(JSON))
     is_published: bool = Field(default=True)
-    created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), server_default=func.now())
-    )
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
 
     # Relationships
     days: list["PackageDay"] = Relationship(back_populates="package")

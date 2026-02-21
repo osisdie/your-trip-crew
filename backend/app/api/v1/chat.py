@@ -98,15 +98,14 @@ async def send_message(
         session_id=session_id,
         user_message=body.content,
         intent_slots=session.intent_slots,
+        locale=body.locale,
     )
 
     # Persist accumulated intent slots back to the session
     await chat_service.update_intent_slots(db, session_id, updated_slots)
 
     # Save assistant response
-    assistant_msg = await chat_service.add_message(
-        db, session_id, MessageRole.assistant, assistant_content
-    )
+    assistant_msg = await chat_service.add_message(db, session_id, MessageRole.assistant, assistant_content)
 
     return ChatMessageRead.model_validate(assistant_msg, from_attributes=True)
 

@@ -18,16 +18,28 @@ def search_japan_itinerary(
         "tokyo": {
             "city": "Tokyo",
             "suggestions": [
-                {"theme": "Classic Tokyo", "areas": ["Shibuya", "Asakusa", "Akihabara", "Shinjuku", "Harajuku"]},
-                {"theme": "Hidden Tokyo", "areas": ["Yanaka", "Shimokitazawa", "Koenji", "Kagurazaka"]},
+                {
+                    "theme": "Classic Tokyo",
+                    "areas": ["Shibuya", "Asakusa", "Akihabara", "Shinjuku", "Harajuku"],
+                },
+                {
+                    "theme": "Hidden Tokyo",
+                    "areas": ["Yanaka", "Shimokitazawa", "Koenji", "Kagurazaka"],
+                },
             ],
             "budget_per_day": {"low": 80, "medium": 150, "high": 300},
         },
         "kyoto": {
             "city": "Kyoto",
             "suggestions": [
-                {"theme": "Temple Trail", "areas": ["Kiyomizu", "Fushimi Inari", "Arashiyama", "Gion"]},
-                {"theme": "Zen Experience", "areas": ["Ryoan-ji", "Daitoku-ji", "Philosopher's Path"]},
+                {
+                    "theme": "Temple Trail",
+                    "areas": ["Kiyomizu", "Fushimi Inari", "Arashiyama", "Gion"],
+                },
+                {
+                    "theme": "Zen Experience",
+                    "areas": ["Ryoan-ji", "Daitoku-ji", "Philosopher's Path"],
+                },
             ],
             "budget_per_day": {"low": 70, "medium": 130, "high": 250},
         },
@@ -35,7 +47,10 @@ def search_japan_itinerary(
             "city": "Osaka",
             "suggestions": [
                 {"theme": "Food Capital", "areas": ["Dotonbori", "Shinsekai", "Kuromon Market"]},
-                {"theme": "Culture & Fun", "areas": ["Osaka Castle", "Universal Studios", "Sumiyoshi Taisha"]},
+                {
+                    "theme": "Culture & Fun",
+                    "areas": ["Osaka Castle", "Universal Studios", "Sumiyoshi Taisha"],
+                },
             ],
             "budget_per_day": {"low": 70, "medium": 140, "high": 280},
         },
@@ -73,19 +88,73 @@ def search_japan_hotels(
     """Search for hotels in Japanese cities."""
     hotels = {
         "tokyo": [
-            {"name": "Hotel Gracery Shinjuku", "area": "Shinjuku", "price_per_night": 120, "style": "hotel", "rating": 4.3},
-            {"name": "Dormy Inn Premium Ginza", "area": "Ginza", "price_per_night": 95, "style": "hotel", "rating": 4.2},
-            {"name": "Nui. HOSTEL & BAR LOUNGE", "area": "Kuramae", "price_per_night": 35, "style": "hostel", "rating": 4.5},
-            {"name": "Hoshinoya Tokyo", "area": "Otemachi", "price_per_night": 450, "style": "ryokan", "rating": 4.8},
+            {
+                "name": "Hotel Gracery Shinjuku",
+                "area": "Shinjuku",
+                "price_per_night": 120,
+                "style": "hotel",
+                "rating": 4.3,
+            },
+            {
+                "name": "Dormy Inn Premium Ginza",
+                "area": "Ginza",
+                "price_per_night": 95,
+                "style": "hotel",
+                "rating": 4.2,
+            },
+            {
+                "name": "Nui. HOSTEL & BAR LOUNGE",
+                "area": "Kuramae",
+                "price_per_night": 35,
+                "style": "hostel",
+                "rating": 4.5,
+            },
+            {
+                "name": "Hoshinoya Tokyo",
+                "area": "Otemachi",
+                "price_per_night": 450,
+                "style": "ryokan",
+                "rating": 4.8,
+            },
         ],
         "kyoto": [
-            {"name": "Hotel Kanra Kyoto", "area": "Gojo", "price_per_night": 180, "style": "hotel", "rating": 4.5},
-            {"name": "Ryokan Shimizu", "area": "Gion", "price_per_night": 250, "style": "ryokan", "rating": 4.7},
-            {"name": "Piece Hostel Sanjo", "area": "Sanjo", "price_per_night": 30, "style": "hostel", "rating": 4.4},
+            {
+                "name": "Hotel Kanra Kyoto",
+                "area": "Gojo",
+                "price_per_night": 180,
+                "style": "hotel",
+                "rating": 4.5,
+            },
+            {
+                "name": "Ryokan Shimizu",
+                "area": "Gion",
+                "price_per_night": 250,
+                "style": "ryokan",
+                "rating": 4.7,
+            },
+            {
+                "name": "Piece Hostel Sanjo",
+                "area": "Sanjo",
+                "price_per_night": 30,
+                "style": "hostel",
+                "rating": 4.4,
+            },
         ],
         "osaka": [
-            {"name": "Cross Hotel Osaka", "area": "Shinsaibashi", "price_per_night": 100, "style": "hotel", "rating": 4.3},
-            {"name": "Swissotel Nankai Osaka", "area": "Namba", "price_per_night": 200, "style": "hotel", "rating": 4.5},
+            {
+                "name": "Cross Hotel Osaka",
+                "area": "Shinsaibashi",
+                "price_per_night": 100,
+                "style": "hotel",
+                "rating": 4.3,
+            },
+            {
+                "name": "Swissotel Nankai Osaka",
+                "area": "Namba",
+                "price_per_night": 200,
+                "style": "hotel",
+                "rating": 4.5,
+            },
         ],
     }
 
@@ -113,18 +182,53 @@ def search_japan_festivals(region: str, month: int, year: int = 2025) -> dict:
     """Search for festivals and events in Japan by region and month."""
     festivals = {
         "tokyo": [
-            {"month": 3, "name": "Cherry Blossom Festival", "location": "Ueno Park", "dates": "Late March - Early April"},
-            {"month": 7, "name": "Sumida River Fireworks", "location": "Sumida River", "dates": "Last Saturday of July"},
-            {"month": 11, "name": "Tori-no-Ichi Fair", "location": "Otori Shrine", "dates": "November"},
+            {
+                "month": 3,
+                "name": "Cherry Blossom Festival",
+                "location": "Ueno Park",
+                "dates": "Late March - Early April",
+            },
+            {
+                "month": 7,
+                "name": "Sumida River Fireworks",
+                "location": "Sumida River",
+                "dates": "Last Saturday of July",
+            },
+            {
+                "month": 11,
+                "name": "Tori-no-Ichi Fair",
+                "location": "Otori Shrine",
+                "dates": "November",
+            },
         ],
         "kyoto": [
             {"month": 4, "name": "Miyako Odori", "location": "Gion", "dates": "April 1-30"},
-            {"month": 7, "name": "Gion Matsuri", "location": "Downtown Kyoto", "dates": "July 1-31"},
-            {"month": 10, "name": "Jidai Matsuri", "location": "Imperial Palace", "dates": "October 22"},
+            {
+                "month": 7,
+                "name": "Gion Matsuri",
+                "location": "Downtown Kyoto",
+                "dates": "July 1-31",
+            },
+            {
+                "month": 10,
+                "name": "Jidai Matsuri",
+                "location": "Imperial Palace",
+                "dates": "October 22",
+            },
         ],
         "hokkaido": [
-            {"month": 2, "name": "Sapporo Snow Festival", "location": "Odori Park", "dates": "Early February"},
-            {"month": 7, "name": "Furano Lavender Festival", "location": "Farm Tomita", "dates": "July"},
+            {
+                "month": 2,
+                "name": "Sapporo Snow Festival",
+                "location": "Odori Park",
+                "dates": "Early February",
+            },
+            {
+                "month": 7,
+                "name": "Furano Lavender Festival",
+                "location": "Farm Tomita",
+                "dates": "July",
+            },
         ],
     }
 
@@ -148,12 +252,54 @@ def search_japan_ski_resorts(
 ) -> dict:
     """Search for ski resorts in Japan."""
     resorts = [
-        {"name": "Niseko Grand Hirafu", "region": "hokkaido", "skill_levels": ["beginner", "intermediate", "advanced"], "has_kids_area": True, "daily_pass_usd": 65, "snow_quality": "legendary powder"},
-        {"name": "Niseko Village", "region": "hokkaido", "skill_levels": ["intermediate", "advanced"], "has_kids_area": True, "daily_pass_usd": 60, "snow_quality": "legendary powder"},
-        {"name": "Furano", "region": "hokkaido", "skill_levels": ["beginner", "intermediate", "advanced"], "has_kids_area": True, "daily_pass_usd": 50, "snow_quality": "excellent powder"},
-        {"name": "Hakuba Valley", "region": "nagano", "skill_levels": ["intermediate", "advanced"], "has_kids_area": True, "daily_pass_usd": 55, "snow_quality": "great powder"},
-        {"name": "Nozawa Onsen", "region": "nagano", "skill_levels": ["beginner", "intermediate", "advanced"], "has_kids_area": False, "daily_pass_usd": 45, "snow_quality": "excellent"},
-        {"name": "Myoko Kogen", "region": "niigata", "skill_levels": ["beginner", "intermediate"], "has_kids_area": True, "daily_pass_usd": 40, "snow_quality": "deep snow"},
+        {
+            "name": "Niseko Grand Hirafu",
+            "region": "hokkaido",
+            "skill_levels": ["beginner", "intermediate", "advanced"],
+            "has_kids_area": True,
+            "daily_pass_usd": 65,
+            "snow_quality": "legendary powder",
+        },
+        {
+            "name": "Niseko Village",
+            "region": "hokkaido",
+            "skill_levels": ["intermediate", "advanced"],
+            "has_kids_area": True,
+            "daily_pass_usd": 60,
+            "snow_quality": "legendary powder",
+        },
+        {
+            "name": "Furano",
+            "region": "hokkaido",
+            "skill_levels": ["beginner", "intermediate", "advanced"],
+            "has_kids_area": True,
+            "daily_pass_usd": 50,
+            "snow_quality": "excellent powder",
+        },
+        {
+            "name": "Hakuba Valley",
+            "region": "nagano",
+            "skill_levels": ["intermediate", "advanced"],
+            "has_kids_area": True,
+            "daily_pass_usd": 55,
+            "snow_quality": "great powder",
+        },
+        {
+            "name": "Nozawa Onsen",
+            "region": "nagano",
+            "skill_levels": ["beginner", "intermediate", "advanced"],
+            "has_kids_area": False,
+            "daily_pass_usd": 45,
+            "snow_quality": "excellent",
+        },
+        {
+            "name": "Myoko Kogen",
+            "region": "niigata",
+            "skill_levels": ["beginner", "intermediate"],
+            "has_kids_area": True,
+            "daily_pass_usd": 40,
+            "snow_quality": "deep snow",
+        },
     ]
 
     filtered = resorts
@@ -184,23 +330,68 @@ def plan_japan_train_route(
 ) -> dict:
     """Plan a train route in Japan using JR and other rail systems."""
     routes = {
-        ("tokyo", "kyoto"): {"method": "Shinkansen Nozomi", "duration": "2h 15m", "price_usd": 120, "jr_pass_covered": True, "note": "Nozomi not covered by JR Pass, use Hikari instead (2h 40m)"},
-        ("tokyo", "osaka"): {"method": "Shinkansen Nozomi", "duration": "2h 30m", "price_usd": 130, "jr_pass_covered": True},
-        ("tokyo", "hakone"): {"method": "Odakyu Romance Car", "duration": "1h 25m", "price_usd": 18, "jr_pass_covered": False},
-        ("tokyo", "nikko"): {"method": "Tobu Railway", "duration": "2h", "price_usd": 25, "jr_pass_covered": False},
-        ("kyoto", "nara"): {"method": "JR Nara Line", "duration": "45m", "price_usd": 7, "jr_pass_covered": True},
-        ("osaka", "kyoto"): {"method": "JR Special Rapid", "duration": "30m", "price_usd": 5, "jr_pass_covered": True},
-        ("tokyo", "hiroshima"): {"method": "Shinkansen Nozomi", "duration": "4h", "price_usd": 170, "jr_pass_covered": True},
-        ("tokyo", "sapporo"): {"method": "Shinkansen + Hokkaido Shinkansen", "duration": "8h", "price_usd": 250, "jr_pass_covered": True, "note": "Consider flying (1.5h, ~$100)"},
+        ("tokyo", "kyoto"): {
+            "method": "Shinkansen Nozomi",
+            "duration": "2h 15m",
+            "price_usd": 120,
+            "jr_pass_covered": True,
+            "note": "Nozomi not covered by JR Pass, use Hikari instead (2h 40m)",
+        },
+        ("tokyo", "osaka"): {
+            "method": "Shinkansen Nozomi",
+            "duration": "2h 30m",
+            "price_usd": 130,
+            "jr_pass_covered": True,
+        },
+        ("tokyo", "hakone"): {
+            "method": "Odakyu Romance Car",
+            "duration": "1h 25m",
+            "price_usd": 18,
+            "jr_pass_covered": False,
+        },
+        ("tokyo", "nikko"): {
+            "method": "Tobu Railway",
+            "duration": "2h",
+            "price_usd": 25,
+            "jr_pass_covered": False,
+        },
+        ("kyoto", "nara"): {
+            "method": "JR Nara Line",
+            "duration": "45m",
+            "price_usd": 7,
+            "jr_pass_covered": True,
+        },
+        ("osaka", "kyoto"): {
+            "method": "JR Special Rapid",
+            "duration": "30m",
+            "price_usd": 5,
+            "jr_pass_covered": True,
+        },
+        ("tokyo", "hiroshima"): {
+            "method": "Shinkansen Nozomi",
+            "duration": "4h",
+            "price_usd": 170,
+            "jr_pass_covered": True,
+        },
+        ("tokyo", "sapporo"): {
+            "method": "Shinkansen + Hokkaido Shinkansen",
+            "duration": "8h",
+            "price_usd": 250,
+            "jr_pass_covered": True,
+            "note": "Consider flying (1.5h, ~$100)",
+        },
     }
 
     key = (origin.lower(), destination.lower())
-    route = routes.get(key, {
-        "method": "JR Line",
-        "duration": "varies",
-        "price_usd": 50,
-        "jr_pass_covered": True,
-    })
+    route = routes.get(
+        key,
+        {
+            "method": "JR Line",
+            "duration": "varies",
+            "price_usd": 50,
+            "jr_pass_covered": True,
+        },
+    )
 
     total_price = route["price_usd"] * passengers
     if jr_pass and route.get("jr_pass_covered"):
