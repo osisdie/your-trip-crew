@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_reasoning
 
 
-def create_family_advisor_agent() -> Agent:
+def create_family_advisor_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Family Travel Advisor",
         goal="Provide expert family travel advice tailored to children's ages and needs",
@@ -16,5 +16,6 @@ def create_family_advisor_agent() -> Agent:
             "itinerary so everyone has fun without burnout."
         ),
         llm=llm_reasoning,
+        tools=tools or [],
         verbose=True,
     )

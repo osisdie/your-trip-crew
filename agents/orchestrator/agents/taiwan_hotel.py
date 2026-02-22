@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_taiwan_hotel_agent() -> Agent:
+def create_taiwan_hotel_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Taiwan Accommodation Finder",
         goal="Find the best hotels and hostels in Taiwan matching the traveler's budget",
@@ -15,5 +15,6 @@ def create_taiwan_hotel_agent() -> Agent:
             "which areas have the best transport connections and food options nearby."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )

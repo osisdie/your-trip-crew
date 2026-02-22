@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_flight_booking_agent() -> Agent:
+def create_flight_booking_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Flight Search Specialist",
         goal="Find the best flights for the trip based on dates, budget, and preferences",
@@ -15,5 +15,6 @@ def create_flight_booking_agent() -> Agent:
             "convenience. You always present multiple options at different price points."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )

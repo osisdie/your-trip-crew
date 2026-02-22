@@ -16,11 +16,11 @@ from orchestrator.tasks.planning_tasks import (
 )
 
 
-def create_japan_crew(slots: dict) -> Crew:
-    itinerary_agent = create_japan_itinerary_agent()
-    hotel_agent = create_japan_hotel_agent()
-    train_agent = create_japan_train_agent()
-    festival_agent = create_japan_festival_agent()
+def create_japan_crew(slots: dict, tools: list | None = None) -> Crew:
+    itinerary_agent = create_japan_itinerary_agent(tools=tools)
+    hotel_agent = create_japan_hotel_agent(tools=tools)
+    train_agent = create_japan_train_agent(tools=tools)
+    festival_agent = create_japan_festival_agent(tools=tools)
 
     agents = [itinerary_agent, hotel_agent, train_agent, festival_agent]
     tasks = [
@@ -32,7 +32,7 @@ def create_japan_crew(slots: dict) -> Crew:
 
     # Add skiing if requested
     if slots.get("has_skiing"):
-        ski_agent = create_japan_skiing_agent()
+        ski_agent = create_japan_skiing_agent(tools=tools)
         agents.append(ski_agent)
         tasks.append(create_ski_task(ski_agent, slots))
 

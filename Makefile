@@ -1,4 +1,4 @@
-.PHONY: up down build logs seed migrate test lint viz-flow open-flow
+.PHONY: up down build logs seed migrate test lint viz-flow open-flow test-mcp
 
 up:
 	docker compose up -d
@@ -44,6 +44,10 @@ viz-flow:
 
 open-flow:
 	cmd.exe /c start "" "$$(wslpath -w '$(CURDIR)/agents/flow_visualization.html')"
+
+test-mcp:
+	docker compose exec trip-mcp-japan pip install -q pytest pytest-asyncio && \
+	docker compose exec trip-mcp-japan pytest tests/ -v
 
 clean:
 	docker compose down -v --remove-orphans

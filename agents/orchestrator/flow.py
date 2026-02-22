@@ -16,6 +16,7 @@ from orchestrator.crews.japan_crew import create_japan_crew
 from orchestrator.crews.link_validator_crew import validate_links
 from orchestrator.crews.synthesis_crew import create_synthesis_crew
 from orchestrator.crews.taiwan_crew import create_taiwan_crew
+from orchestrator.mcp_config import safe_mcp_tools
 from orchestrator.state import IntentSlots, TripPlanningState
 
 logger = logging.getLogger(__name__)
@@ -89,38 +90,42 @@ class TripPlanningFlow(Flow[TripPlanningState]):
 
     @listen("plan_japan")
     def plan_japan_trip(self):
-        """Step 2a: Run Japan planning crew."""
+        """Step 2a: Run Japan planning crew with MCP tools."""
         logger.info("Running Japan planning crew")
         slots = self.state.intent.model_dump(exclude_none=True)
-        crew = create_japan_crew(slots)
-        result = crew.kickoff()
+        with safe_mcp_tools(["japan"]) as tools:
+            crew = create_japan_crew(slots, tools=tools)
+            result = crew.kickoff()
         self.state.itinerary_data = {"japan": str(result)}
 
     @listen("plan_taiwan")
     def plan_taiwan_trip(self):
-        """Step 2b: Run Taiwan planning crew."""
+        """Step 2b: Run Taiwan planning crew with MCP tools."""
         logger.info("Running Taiwan planning crew")
         slots = self.state.intent.model_dump(exclude_none=True)
-        crew = create_taiwan_crew(slots)
-        result = crew.kickoff()
+        with safe_mcp_tools(["taiwan"]) as tools:
+            crew = create_taiwan_crew(slots, tools=tools)
+            result = crew.kickoff()
         self.state.itinerary_data = {"taiwan": str(result)}
 
     @listen(plan_japan_trip, plan_taiwan_trip)
     def book_flights_and_esim(self):
-        """Step 3: Run booking crew for flights and eSIM."""
+        """Step 3: Run booking crew with flights + utilities MCP tools."""
         logger.info("Running booking crew")
         slots = self.state.intent.model_dump(exclude_none=True)
-        crew = create_booking_crew(slots)
-        result = crew.kickoff()
+        with safe_mcp_tools(["flights", "utilities"]) as tools:
+            crew = create_booking_crew(slots, tools=tools)
+            result = crew.kickoff()
         self.state.flight_data = {"results": str(result)}
 
     @listen(book_flights_and_esim)
     def get_advisory_info(self):
-        """Step 4: Run advisory crew for family advice and currency."""
+        """Step 4: Run advisory crew with utility MCP tools."""
         logger.info("Running advisory crew")
         slots = self.state.intent.model_dump(exclude_none=True)
-        crew = create_advisory_crew(slots)
-        result = crew.kickoff()
+        with safe_mcp_tools(["utilities"]) as tools:
+            crew = create_advisory_crew(slots, tools=tools)
+            result = crew.kickoff()
         self.state.currency_data = {"results": str(result)}
 
     @listen(get_advisory_info)

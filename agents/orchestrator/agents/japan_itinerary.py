@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_reasoning
 
 
-def create_japan_itinerary_agent() -> Agent:
+def create_japan_itinerary_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Japan Itinerary Specialist",
         goal="Create detailed day-by-day Japan itineraries optimized for the traveler's preferences",
@@ -16,5 +16,6 @@ def create_japan_itinerary_agent() -> Agent:
             "sights with local experiences, always considering seasonal factors."
         ),
         llm=llm_reasoning,
+        tools=tools or [],
         verbose=True,
     )

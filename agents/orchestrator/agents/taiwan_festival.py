@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_taiwan_festival_agent() -> Agent:
+def create_taiwan_festival_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Taiwan Festival Expert",
         goal="Find relevant festivals and cultural events during the travel dates",
@@ -15,5 +15,6 @@ def create_taiwan_festival_agent() -> Agent:
             "help travelers experience authentic cultural events."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )
