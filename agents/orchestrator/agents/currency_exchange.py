@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_currency_exchange_agent() -> Agent:
+def create_currency_exchange_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Currency & Budget Advisor",
         goal="Convert budgets to local currency and provide money tips",
@@ -14,5 +14,6 @@ def create_currency_exchange_agent() -> Agent:
             "tips about money exchange, credit card acceptance, and tipping customs."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )

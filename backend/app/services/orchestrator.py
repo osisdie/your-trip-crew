@@ -17,6 +17,7 @@ import httpx
 
 from app.config import settings
 from app.services.flow_events import emit as flow_emit
+from app.services.mcp_client import call_mcp_tools_parallel
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +175,7 @@ _DEST_PATTERNS = [
     (re.compile(_JAPAN_RE, re.I), "japan"),
     (re.compile(_TAIWAN_RE, re.I), "taiwan"),
 ]
-_DURATION_RE = re.compile(r"(\d+)\s*(?:天|日|days?|nights?)", re.I)
+_DURATION_RE = re.compile(r"(\d+)[\s-]*(?:天|日|days?|nights?)", re.I)
 _TRAVELERS_RE = re.compile(r"(\d+)\s*(?:人|個人|位|adults?|people|persons?|pax)", re.I)
 _BUDGET_RE = re.compile(r"(?:預算|budget)[^\d]*(\d[\d,]*)\s*(?:美[金元]|usd|\$)?", re.I)
 _BUDGET_RE2 = re.compile(r"\$\s*(\d[\d,]*)", re.I)
@@ -303,7 +304,115 @@ async def _call_llm(client: httpx.AsyncClient, model: str, messages: list[dict])
         return None
 
 
-def _build_user_prompt(user_message: str, intent_slots: dict | None) -> str:
+# ---------------------------------------------------------------------------
+# MCP enrichment — fetch real data from MCP servers before LLM call
+# ---------------------------------------------------------------------------
+
+
+def _select_mcp_calls(slots: dict) -> list[tuple[str, str, dict]]:
+    """Map intent slots to MCP tool calls: (base_url, tool_name, arguments)."""
+    calls: list[tuple[str, str, dict]] = []
+    dest = slots.get("destination", "").lower()
+    duration = slots.get("duration_days", 3)
+    style = slots.get("trip_style", "balanced")
+    budget = "medium"
+    if slots.get("budget_usd"):
+        per_day = slots["budget_usd"] / max(duration, 1)
+        budget = "low" if per_day < 100 else ("high" if per_day > 250 else "medium")
+
+    if dest in ("japan", "tokyo", "kyoto", "osaka", "hokkaido"):
+        city = dest if dest != "japan" else "tokyo"
+        calls.append(
+            (
+                settings.mcp_japan_url,
+                "search_japan_itinerary",
+                {"city": city, "duration": duration, "style": style, "budget_level": budget},
+            )
+        )
+        calls.append(
+            (
+                settings.mcp_japan_url,
+                "search_japan_hotels",
+                {
+                    "city": city,
+                    "checkin": "2025-04-01",
+                    "checkout": "2025-04-04",
+                    "guests": slots.get("num_travelers", 2),
+                },
+            )
+        )
+
+    elif dest in ("taiwan", "taipei", "kaohsiung", "taichung", "hualien"):
+        city = dest if dest != "taiwan" else "taipei"
+        calls.append(
+            (
+                settings.mcp_taiwan_url,
+                "search_taiwan_itinerary",
+                {"city": city, "duration": duration, "style": style, "budget_level": budget},
+            )
+        )
+        calls.append(
+            (
+                settings.mcp_taiwan_url,
+                "search_taiwan_hotels",
+                {
+                    "city": city,
+                    "checkin": "2025-04-01",
+                    "checkout": "2025-04-04",
+                    "guests": slots.get("num_travelers", 2),
+                },
+            )
+        )
+
+    # Utility tools — always include when destination is known
+    if dest:
+        target_currency = "JPY" if dest in ("japan", "tokyo", "kyoto", "osaka", "hokkaido") else "TWD"
+        calls.append(
+            (
+                settings.mcp_utilities_url,
+                "convert_currency",
+                {"amount": 1000, "from_currency": "USD", "to_currency": target_currency},
+            )
+        )
+        country = "Japan" if target_currency == "JPY" else "Taiwan"
+        calls.append(
+            (
+                settings.mcp_utilities_url,
+                "search_esim_plans",
+                {"country": country, "duration_days": duration, "data_gb": 5},
+            )
+        )
+
+    # Family advice when children are present
+    if slots.get("children_ages") and dest:
+        country = "Japan" if dest in ("japan", "tokyo", "kyoto", "osaka", "hokkaido") else "Taiwan"
+        calls.append(
+            (
+                settings.mcp_utilities_url,
+                "get_family_travel_advice",
+                {"destination": country, "children_ages": slots["children_ages"]},
+            )
+        )
+
+    return calls
+
+
+def _format_mcp_context(results: list[dict | None], call_specs: list[tuple[str, str, dict]]) -> str:
+    """Format MCP results into a structured context block for the LLM prompt."""
+    sections: list[str] = []
+    for (_, tool_name, _), result in zip(call_specs, results):
+        if result is None:
+            continue
+        sections.append(f"[MCP:{tool_name}]\n{json.dumps(result, ensure_ascii=False, indent=2)}")
+
+    if not sections:
+        return ""
+    return "\n\n".join(
+        ["--- REAL-TIME TRAVEL DATA (use this to ground your response) ---", *sections, "--- END TRAVEL DATA ---"]
+    )
+
+
+def _build_user_prompt(user_message: str, intent_slots: dict | None, mcp_context: str = "") -> str:
     """Build the user-role prompt with accumulated slot context."""
     parts: list[str] = []
 
@@ -316,6 +425,9 @@ def _build_user_prompt(user_message: str, intent_slots: dict | None) -> str:
             parts.append(f"[Status]: Still need: {', '.join(missing)}")
     else:
         parts.append("[Accumulated travel info]: None yet — this is a new conversation.")
+
+    if mcp_context:
+        parts.append(f"\n{mcp_context}")
 
     parts.append(f"\nUser message: {user_message}")
     return "\n".join(parts)
@@ -448,6 +560,39 @@ async def process_user_message(
         message=f"Route: {'plan_' + dest if dest_crew else 'ask_user'}",
     )
 
+    # MCP enrichment — fetch real data before LLM call
+    mcp_context = ""
+    if dest and slots_complete(merged):
+        try:
+            await _emit(
+                session_id,
+                step="mcp_enrichment",
+                crew="mcp",
+                status="active",
+                message="Fetching real-time travel data from MCP servers",
+            )
+            mcp_calls = _select_mcp_calls(merged)
+            mcp_results = await call_mcp_tools_parallel(mcp_calls)
+            mcp_context = _format_mcp_context(mcp_results, mcp_calls)
+            successful = sum(1 for r in mcp_results if r is not None)
+            logger.info("MCP enrichment: %d calls, %d successful", len(mcp_calls), successful)
+            await _emit(
+                session_id,
+                step="mcp_enrichment",
+                crew="mcp",
+                status="done",
+                message=f"Fetched data from {successful}/{len(mcp_calls)} MCP tools",
+            )
+        except Exception:
+            logger.warning("MCP enrichment failed, continuing without", exc_info=True)
+            await _emit(
+                session_id,
+                step="mcp_enrichment",
+                crew="mcp",
+                status="done",
+                message="MCP enrichment skipped (error)",
+            )
+
     # Select prompt: greeting (first message) vs conversation (subsequent)
     is_greeting = not intent_slots
     if is_greeting:
@@ -459,7 +604,7 @@ async def process_user_message(
     # Build LLM prompt with latest accumulated context
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": _build_user_prompt(user_message, merged)},
+        {"role": "user", "content": _build_user_prompt(user_message, merged, mcp_context)},
     ]
 
     # LLM call → planning phase

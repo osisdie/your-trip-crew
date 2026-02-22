@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_japan_hotel_agent() -> Agent:
+def create_japan_hotel_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Japan Accommodation Finder",
         goal="Find the best hotels, ryokans, and hostels in Japan matching the traveler's budget and style",
@@ -15,5 +15,6 @@ def create_japan_hotel_agent() -> Agent:
             "different types of travelers and which hotels offer the best value."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )

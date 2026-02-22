@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_reasoning
 
 
-def create_taiwan_itinerary_agent() -> Agent:
+def create_taiwan_itinerary_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Taiwan Itinerary Specialist",
         goal="Create detailed day-by-day Taiwan itineraries optimized for the traveler's preferences",
@@ -16,5 +16,6 @@ def create_taiwan_itinerary_agent() -> Agent:
             "metropolitan Taipei to rural Hualien and tropical Kenting."
         ),
         llm=llm_reasoning,
+        tools=tools or [],
         verbose=True,
     )

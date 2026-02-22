@@ -14,11 +14,11 @@ from orchestrator.tasks.planning_tasks import (
 )
 
 
-def create_taiwan_crew(slots: dict) -> Crew:
-    itinerary_agent = create_taiwan_itinerary_agent()
-    hotel_agent = create_taiwan_hotel_agent()
-    train_agent = create_taiwan_train_agent()
-    festival_agent = create_taiwan_festival_agent()
+def create_taiwan_crew(slots: dict, tools: list | None = None) -> Crew:
+    itinerary_agent = create_taiwan_itinerary_agent(tools=tools)
+    hotel_agent = create_taiwan_hotel_agent(tools=tools)
+    train_agent = create_taiwan_train_agent(tools=tools)
+    festival_agent = create_taiwan_festival_agent(tools=tools)
 
     return Crew(
         agents=[itinerary_agent, hotel_agent, train_agent, festival_agent],

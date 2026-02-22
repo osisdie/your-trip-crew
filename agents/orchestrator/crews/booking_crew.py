@@ -7,9 +7,9 @@ from orchestrator.agents.flight_booking import create_flight_booking_agent
 from orchestrator.tasks.booking_tasks import create_esim_task, create_flight_task
 
 
-def create_booking_crew(slots: dict) -> Crew:
-    flight_agent = create_flight_booking_agent()
-    esim_agent = create_esim_agent()
+def create_booking_crew(slots: dict, tools: list | None = None) -> Crew:
+    flight_agent = create_flight_booking_agent(tools=tools)
+    esim_agent = create_esim_agent(tools=tools)
 
     return Crew(
         agents=[flight_agent, esim_agent],

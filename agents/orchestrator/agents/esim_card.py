@@ -5,7 +5,7 @@ from crewai import Agent
 from orchestrator.llm_config import llm_fast
 
 
-def create_esim_agent() -> Agent:
+def create_esim_agent(tools: list | None = None) -> Agent:
     return Agent(
         role="Connectivity Advisor",
         goal="Recommend the best eSIM or SIM card options for the destination",
@@ -15,5 +15,6 @@ def create_esim_agent() -> Agent:
             "duration, data needs, and whether travelers need a local phone number."
         ),
         llm=llm_fast,
+        tools=tools or [],
         verbose=True,
     )
